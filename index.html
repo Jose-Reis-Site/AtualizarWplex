@@ -75,7 +75,7 @@
 
     .source-row {
       display: grid;
-      grid-template-columns: minmax(220px, 1fr) auto auto;
+      grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto auto;
       gap: 10px;
       align-items: end;
     }
@@ -135,6 +135,12 @@
 
     button.secondary:hover {
       background: #e9f5f3;
+    }
+
+    button.small {
+      min-height: 30px;
+      padding: 0 10px;
+      font-size: 12px;
     }
 
     .statusbar {
@@ -256,6 +262,58 @@
       background: #fff2f0;
     }
 
+    dialog {
+      width: min(440px, calc(100% - 28px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0;
+      box-shadow: 0 24px 70px rgba(24, 33, 47, 0.22);
+    }
+
+    dialog::backdrop {
+      background: rgba(18, 52, 59, 0.42);
+    }
+
+    .modal-head,
+    .modal-body,
+    .modal-actions {
+      padding: 16px;
+    }
+
+    .modal-head {
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .modal-body {
+      display: grid;
+      gap: 12px;
+    }
+
+    .record-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .record-summary strong {
+      color: var(--ink);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      border-top: 1px solid var(--line-soft);
+    }
+
     @media (max-width: 980px) {
       .source-row,
       .filters {
@@ -289,6 +347,10 @@
         <label>
           URL do CSV
           <input id="csvUrl" type="url" spellcheck="false">
+        </label>
+        <label>
+          URL do Web App
+          <input id="apiUrl" type="url" spellcheck="false" placeholder="Cole aqui a URL do Apps Script">
         </label>
         <button id="reloadBtn" type="button">Atualizar dados</button>
         <button id="exportBtn" type="button" class="secondary">Exportar filtrado</button>
@@ -332,6 +394,7 @@
         <span class="chip">Total: <strong id="totalRows">0</strong></span>
         <span class="chip">Filtrado: <strong id="filteredRows">0</strong></span>
         <span class="chip">Colunas: <strong id="totalColumns">0</strong></span>
+        <span class="chip">Salvamento: <strong id="saveMode">CSV</strong></span>
       </div>
       <div class="pager">
         <button id="prevPage" type="button" class="secondary">Anterior</button>
@@ -349,8 +412,35 @@
     </section>
   </main>
 
+  <dialog id="editDialog">
+    <form method="dialog">
+      <div class="modal-head">
+        <h2>Trocar matricula</h2>
+      </div>
+      <div class="modal-body">
+        <div class="record-summary">
+          <span>Linha: <strong id="editLine">-</strong></span>
+          <span>Carro: <strong id="editCar">-</strong></span>
+          <span>Servico: <strong id="editService">-</strong></span>
+          <span>Registro: <strong id="editRow">-</strong></span>
+        </div>
+        <label>
+          Nova matricula
+          <input id="driverInput" type="text" inputmode="numeric" maxlength="20" autocomplete="off">
+        </label>
+        <div id="editMessage" class="message" hidden></div>
+      </div>
+      <div class="modal-actions">
+        <button id="cancelEdit" type="button" class="secondary">Cancelar</button>
+        <button id="saveDriver" type="button">Salvar matricula</button>
+      </div>
+    </form>
+  </dialog>
+
   <script>
     const DEFAULT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4odiCG64QbgNSla-P0oPnwUOpbmLg1GFdl07lCD-9rR8zd7FYllTnlJQm5115TxVtA9MjEh_O7RpU/pub?gid=1235803740&single=true&output=csv';
+    const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzJ1fI2lHr_LeLFGFqV5Y8Ciwdgk4ZHYfXbXPYgovGzOO6IZN4LRQQTnh88RHArgtta/exec';
+    const DRIVER_COLUMN_INDEX = 26;
 
     const COLUMN_NAMES = [
       'Empresa',
@@ -391,11 +481,13 @@
       columns: [],
       page: 1,
       sortColumn: null,
-      sortDirection: 'asc'
+      sortDirection: 'asc',
+      editingRow: null
     };
 
     const els = {
       csvUrl: document.querySelector('#csvUrl'),
+      apiUrl: document.querySelector('#apiUrl'),
       reloadBtn: document.querySelector('#reloadBtn'),
       exportBtn: document.querySelector('#exportBtn'),
       searchInput: document.querySelector('#searchInput'),
@@ -407,16 +499,27 @@
       totalRows: document.querySelector('#totalRows'),
       filteredRows: document.querySelector('#filteredRows'),
       totalColumns: document.querySelector('#totalColumns'),
+      saveMode: document.querySelector('#saveMode'),
       pageInfo: document.querySelector('#pageInfo'),
       prevPage: document.querySelector('#prevPage'),
       nextPage: document.querySelector('#nextPage'),
       message: document.querySelector('#message'),
       table: document.querySelector('#dataTable'),
       thead: document.querySelector('#dataTable thead'),
-      tbody: document.querySelector('#dataTable tbody')
+      tbody: document.querySelector('#dataTable tbody'),
+      editDialog: document.querySelector('#editDialog'),
+      editLine: document.querySelector('#editLine'),
+      editCar: document.querySelector('#editCar'),
+      editService: document.querySelector('#editService'),
+      editRow: document.querySelector('#editRow'),
+      driverInput: document.querySelector('#driverInput'),
+      editMessage: document.querySelector('#editMessage'),
+      cancelEdit: document.querySelector('#cancelEdit'),
+      saveDriver: document.querySelector('#saveDriver')
     };
 
     els.csvUrl.value = DEFAULT_CSV_URL;
+    els.apiUrl.value = localStorage.getItem('wplexApiUrl') || DEFAULT_API_URL;
 
     function parseRows(text) {
       return text
@@ -426,6 +529,7 @@
         .filter(Boolean)
         .map((line, index) => ({
           id: index + 1,
+          sheetRow: index + 1,
           values: line.split(';').map(value => value.trim())
         }));
     }
@@ -439,20 +543,14 @@
       }));
     }
 
-    async function loadCsv() {
+    async function loadData() {
       showMessage('Carregando dados...');
       els.reloadBtn.disabled = true;
 
       try {
-        const response = await fetch(els.csvUrl.value.trim(), { cache: 'no-store' });
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-
-        const text = await response.text();
-        const rows = parseRows(text);
+        const rows = hasApiUrl() ? await loadFromApi() : await loadFromCsv();
         if (!rows.length) {
-          throw new Error('O CSV veio vazio.');
+          throw new Error('A base veio vazia.');
         }
 
         state.rows = normalizeRows(rows);
@@ -461,12 +559,36 @@
         applyFilters();
       } catch (error) {
         showMessage(
-          'Nao foi possivel carregar o CSV direto no navegador. Confirme se a planilha continua publicada na web e se o navegador nao bloqueou a leitura por CORS. Detalhe: ' + error.message,
+          'Nao foi possivel carregar os dados. Se a base nao for publica, use a URL do Web App do Apps Script. Detalhe: ' + error.message,
           true
         );
       } finally {
         els.reloadBtn.disabled = false;
       }
+    }
+
+    async function loadFromCsv() {
+      const response = await fetch(els.csvUrl.value.trim(), { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      return parseRows(await response.text());
+    }
+
+    async function loadFromApi() {
+      const response = await fetch(apiUrlWithParams({ action: 'read' }), { cache: 'no-store' });
+      const payload = await response.json();
+      if (!payload.ok) {
+        throw new Error(payload.error || 'Falha no Apps Script.');
+      }
+
+      localStorage.setItem('wplexApiUrl', cleanApiUrl());
+      return payload.rows.map((row, index) => ({
+        id: index + 1,
+        sheetRow: Number(row.sheetRow || index + 1),
+        values: row.values.map(value => String(value ?? '').trim())
+      }));
     }
 
     function buildFilters() {
@@ -520,6 +642,7 @@
       els.totalRows.textContent = state.rows.length.toLocaleString('pt-BR');
       els.filteredRows.textContent = state.filtered.length.toLocaleString('pt-BR');
       els.totalColumns.textContent = state.columns.length.toLocaleString('pt-BR');
+      els.saveMode.textContent = hasApiUrl() ? 'Web App' : 'CSV';
 
       if (!state.filtered.length) {
         showMessage('Nenhum registro encontrado para os filtros atuais.');
@@ -534,9 +657,9 @@
     }
 
     function renderHeader() {
-      const headers = ['#', ...state.columns];
+      const headers = ['#', 'Acao', ...state.columns];
       els.thead.innerHTML = `<tr>${headers.map((name, index) => {
-        const dataIndex = index - 1;
+        const dataIndex = index - 2;
         const marker = dataIndex === state.sortColumn ? (state.sortDirection === 'asc' ? ' ^' : ' v') : '';
         return `<th data-column="${dataIndex}">${escapeHtml(name + marker)}</th>`;
       }).join('')}</tr>`;
@@ -555,7 +678,7 @@
           ].filter(Boolean).join(' ');
           return `<td class="${classes}">${formatCell(value, index)}</td>`;
         }).join('');
-        return `<tr><td>${row.id}</td>${cells}</tr>`;
+        return `<tr><td>${row.id}</td><td><button class="small secondary" type="button" data-edit-row="${row.id}">Editar</button></td>${cells}</tr>`;
       }).join('');
     }
 
@@ -583,7 +706,75 @@
       els.message.hidden = false;
       els.message.className = isError ? 'message error' : 'message';
       els.message.textContent = text;
+      els.saveMode.textContent = hasApiUrl() ? 'Web App' : 'CSV';
       renderPager();
+    }
+
+    function openEdit(rowId) {
+      const row = state.rows.find(item => item.id === Number(rowId));
+      if (!row) return;
+
+      state.editingRow = row;
+      els.editLine.textContent = row.values[4] || '-';
+      els.editCar.textContent = row.values[25] || '-';
+      els.editService.textContent = row.values[2] || '-';
+      els.editRow.textContent = row.sheetRow || row.id;
+      els.driverInput.value = row.values[DRIVER_COLUMN_INDEX] || '';
+      els.editMessage.hidden = true;
+      els.editMessage.textContent = '';
+      els.editMessage.className = 'message';
+      els.editDialog.showModal();
+      els.driverInput.focus();
+      els.driverInput.select();
+    }
+
+    async function saveDriver() {
+      if (!state.editingRow) return;
+      if (!hasApiUrl()) {
+        showEditMessage('Para salvar na planilha base, cole primeiro a URL do Web App do Apps Script.', true);
+        return;
+      }
+
+      const driver = els.driverInput.value.trim();
+      if (!driver) {
+        showEditMessage('Informe a nova matricula.', true);
+        return;
+      }
+
+      els.saveDriver.disabled = true;
+      showEditMessage('Salvando...', false);
+
+      try {
+        const payload = {
+          action: 'updateDriver',
+          sheetRow: state.editingRow.sheetRow,
+          driver
+        };
+        const response = await fetch(cleanApiUrl(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!result.ok) {
+          throw new Error(result.error || 'Falha ao salvar.');
+        }
+
+        state.editingRow.values[DRIVER_COLUMN_INDEX] = driver;
+        applyFilters();
+        showEditMessage('Matricula salva na planilha.', false);
+        setTimeout(() => els.editDialog.close(), 450);
+      } catch (error) {
+        showEditMessage('Nao foi possivel salvar. Detalhe: ' + error.message, true);
+      } finally {
+        els.saveDriver.disabled = false;
+      }
+    }
+
+    function showEditMessage(text, isError) {
+      els.editMessage.hidden = false;
+      els.editMessage.className = isError ? 'message error' : 'message';
+      els.editMessage.textContent = text;
     }
 
     function exportFiltered() {
@@ -606,6 +797,20 @@
       return /[;"\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
     }
 
+    function hasApiUrl() {
+      return cleanApiUrl().length > 0;
+    }
+
+    function cleanApiUrl() {
+      return els.apiUrl.value.trim();
+    }
+
+    function apiUrlWithParams(params) {
+      const url = new URL(cleanApiUrl());
+      Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
+      return url.toString();
+    }
+
     function normalizeText(value) {
       return String(value)
         .normalize('NFD')
@@ -622,8 +827,12 @@
         .replaceAll("'", '&#039;');
     }
 
-    els.reloadBtn.addEventListener('click', loadCsv);
+    els.reloadBtn.addEventListener('click', loadData);
     els.exportBtn.addEventListener('click', exportFiltered);
+    els.apiUrl.addEventListener('change', () => {
+      localStorage.setItem('wplexApiUrl', cleanApiUrl());
+      els.saveMode.textContent = hasApiUrl() ? 'Web App' : 'CSV';
+    });
     els.searchInput.addEventListener('input', () => {
       state.page = 1;
       applyFilters();
@@ -660,7 +869,22 @@
       applyFilters();
     });
 
-    loadCsv();
+    els.tbody.addEventListener('click', event => {
+      const button = event.target.closest('[data-edit-row]');
+      if (!button) return;
+      openEdit(button.dataset.editRow);
+    });
+
+    els.cancelEdit.addEventListener('click', () => els.editDialog.close());
+    els.saveDriver.addEventListener('click', saveDriver);
+    els.driverInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        saveDriver();
+      }
+    });
+
+    loadData();
   </script>
 </body>
 </html>
