@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Planilha web - Programacao</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --ink: #18212f;
+      --muted: #667085;
+      --line: #d8dee8;
+      --line-soft: #edf0f5;
+      --brand: #0f766e;
+      --brand-dark: #115e59;
+      --accent: #b45309;
+      --danger: #b42318;
+      --shadow: 0 18px 45px rgba(24, 33, 47, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 14px;
+    }
+
+    header {
+      background: #12343b;
+      color: #fff;
+      padding: 22px clamp(16px, 4vw, 40px);
+      border-bottom: 4px solid var(--brand);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(24px, 4vw, 38px);
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.78);
+      max-width: 920px;
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(1500px, calc(100% - 28px));
+      margin: 18px auto 34px;
+    }
+
+    .toolbar,
+    .statusbar,
+    .table-wrap {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .toolbar {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .source-row {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) auto auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.6fr repeat(5, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    input,
+    select,
+    button {
+      min-height: 40px;
+      border-radius: 6px;
+      border: 1px solid var(--line);
+      font: inherit;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 0 11px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    button {
+      padding: 0 14px;
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: var(--brand-dark);
+      border-color: var(--brand-dark);
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--brand-dark);
+      border-color: #9ccac5;
+    }
+
+    button.secondary:hover {
+      background: #e9f5f3;
+    }
+
+    .statusbar {
+      margin: 14px 0;
+      padding: 13px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      background: #f9fafb;
+      border-radius: 999px;
+      padding: 7px 10px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .chip strong {
+      color: var(--ink);
+    }
+
+    .pager {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pager button {
+      min-height: 34px;
+      padding: 0 10px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: calc(100vh - 270px);
+    }
+
+    table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      min-width: 1380px;
+      font-size: 13px;
+    }
+
+    th,
+    td {
+      padding: 8px 10px;
+      border-right: 1px solid var(--line-soft);
+      border-bottom: 1px solid var(--line-soft);
+      text-align: left;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #e8edf3;
+      color: #293548;
+      font-size: 12px;
+      text-transform: uppercase;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    tr:nth-child(even) td {
+      background: #fbfcfd;
+    }
+
+    tr:hover td {
+      background: #eef8f6;
+    }
+
+    td.activity {
+      font-weight: 800;
+    }
+
+    td.time {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
+
+    .tag {
+      display: inline-flex;
+      min-width: 30px;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: #e9f5f3;
+      color: var(--brand-dark);
+      font-weight: 800;
+    }
+
+    .tag.alt {
+      background: #fff4e5;
+      color: var(--accent);
+    }
+
+    .message {
+      padding: 22px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .message.error {
+      color: var(--danger);
+      background: #fff2f0;
+    }
+
+    @media (max-width: 980px) {
+      .source-row,
+      .filters {
+        grid-template-columns: 1fr;
+      }
+
+      .statusbar {
+        align-items: stretch;
+      }
+
+      .pager {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .table-wrap {
+        max-height: calc(100vh - 430px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Planilha web</h1>
+    <p class="subtitle">Leitura do CSV publico do Google Sheets, com as linhas separadas por ponto e virgula e exibidas em formato de tabela.</p>
+  </header>
+
+  <main>
+    <section class="toolbar" aria-label="Controles da planilha">
+      <div class="source-row">
+        <label>
+          URL do CSV
+          <input id="csvUrl" type="url" spellcheck="false">
+        </label>
+        <button id="reloadBtn" type="button">Atualizar dados</button>
+        <button id="exportBtn" type="button" class="secondary">Exportar filtrado</button>
+      </div>
+
+      <div class="filters">
+        <label>
+          Busca livre
+          <input id="searchInput" type="search" placeholder="Linha, carro, motorista, local...">
+        </label>
+        <label>
+          Linha
+          <select id="lineFilter"></select>
+        </label>
+        <label>
+          Turno
+          <select id="shiftFilter"></select>
+        </label>
+        <label>
+          Atividade
+          <select id="activityFilter"></select>
+        </label>
+        <label>
+          Sentido
+          <select id="directionFilter"></select>
+        </label>
+        <label>
+          Registros por pagina
+          <select id="pageSize">
+            <option>100</option>
+            <option selected>200</option>
+            <option>500</option>
+            <option>1000</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="statusbar" aria-live="polite">
+      <div class="chips">
+        <span class="chip">Total: <strong id="totalRows">0</strong></span>
+        <span class="chip">Filtrado: <strong id="filteredRows">0</strong></span>
+        <span class="chip">Colunas: <strong id="totalColumns">0</strong></span>
+      </div>
+      <div class="pager">
+        <button id="prevPage" type="button" class="secondary">Anterior</button>
+        <span id="pageInfo">Pagina 0 de 0</span>
+        <button id="nextPage" type="button" class="secondary">Proxima</button>
+      </div>
+    </section>
+
+    <section class="table-wrap">
+      <div id="message" class="message">Carregando dados...</div>
+      <table id="dataTable" hidden>
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const DEFAULT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4odiCG64QbgNSla-P0oPnwUOpbmLg1GFdl07lCD-9rR8zd7FYllTnlJQm5115TxVtA9MjEh_O7RpU/pub?gid=1235803740&single=true&output=csv';
+
+    const COLUMN_NAMES = [
+      'Empresa',
+      'Filial',
+      'Servico',
+      'Tipo',
+      'Linha',
+      'Turno',
+      'Tabela',
+      'Campo 8',
+      'Inicio jornada',
+      'Fim jornada',
+      'Regime',
+      'Vira dia',
+      'Local base',
+      'Campo 14',
+      'Extra 1',
+      'Extra 2',
+      'Extra 3',
+      'Campo 18',
+      'Sentido',
+      'Sequencia',
+      'Atividade',
+      'Inicio',
+      'Fim',
+      'Local',
+      'Campo 25',
+      'Carro',
+      'Motorista',
+      'Campo 28',
+      'Campo 29',
+      'Campo 30'
+    ];
+
+    const state = {
+      rows: [],
+      filtered: [],
+      columns: [],
+      page: 1,
+      sortColumn: null,
+      sortDirection: 'asc'
+    };
+
+    const els = {
+      csvUrl: document.querySelector('#csvUrl'),
+      reloadBtn: document.querySelector('#reloadBtn'),
+      exportBtn: document.querySelector('#exportBtn'),
+      searchInput: document.querySelector('#searchInput'),
+      lineFilter: document.querySelector('#lineFilter'),
+      shiftFilter: document.querySelector('#shiftFilter'),
+      activityFilter: document.querySelector('#activityFilter'),
+      directionFilter: document.querySelector('#directionFilter'),
+      pageSize: document.querySelector('#pageSize'),
+      totalRows: document.querySelector('#totalRows'),
+      filteredRows: document.querySelector('#filteredRows'),
+      totalColumns: document.querySelector('#totalColumns'),
+      pageInfo: document.querySelector('#pageInfo'),
+      prevPage: document.querySelector('#prevPage'),
+      nextPage: document.querySelector('#nextPage'),
+      message: document.querySelector('#message'),
+      table: document.querySelector('#dataTable'),
+      thead: document.querySelector('#dataTable thead'),
+      tbody: document.querySelector('#dataTable tbody')
+    };
+
+    els.csvUrl.value = DEFAULT_CSV_URL;
+
+    function parseRows(text) {
+      return text
+        .replace(/^\uFEFF/, '')
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean)
+        .map((line, index) => ({
+          id: index + 1,
+          values: line.split(';').map(value => value.trim())
+        }));
+    }
+
+    function normalizeRows(rows) {
+      const maxColumns = Math.max(...rows.map(row => row.values.length), COLUMN_NAMES.length);
+      state.columns = Array.from({ length: maxColumns }, (_, index) => COLUMN_NAMES[index] || `Campo ${index + 1}`);
+      return rows.map(row => ({
+        ...row,
+        values: Array.from({ length: maxColumns }, (_, index) => row.values[index] || '')
+      }));
+    }
+
+    async function loadCsv() {
+      showMessage('Carregando dados...');
+      els.reloadBtn.disabled = true;
+
+      try {
+        const response = await fetch(els.csvUrl.value.trim(), { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const text = await response.text();
+        const rows = parseRows(text);
+        if (!rows.length) {
+          throw new Error('O CSV veio vazio.');
+        }
+
+        state.rows = normalizeRows(rows);
+        state.page = 1;
+        buildFilters();
+        applyFilters();
+      } catch (error) {
+        showMessage(
+          'Nao foi possivel carregar o CSV direto no navegador. Confirme se a planilha continua publicada na web e se o navegador nao bloqueou a leitura por CORS. Detalhe: ' + error.message,
+          true
+        );
+      } finally {
+        els.reloadBtn.disabled = false;
+      }
+    }
+
+    function buildFilters() {
+      fillSelect(els.lineFilter, state.rows.map(row => row.values[4]), 'Todas');
+      fillSelect(els.shiftFilter, state.rows.map(row => row.values[5]), 'Todos');
+      fillSelect(els.activityFilter, state.rows.map(row => row.values[20]), 'Todas');
+      fillSelect(els.directionFilter, state.rows.map(row => row.values[18]), 'Todos');
+    }
+
+    function fillSelect(select, values, allLabel) {
+      const current = select.value;
+      const options = [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
+      select.innerHTML = `<option value="">${allLabel}</option>` + options.map(value => `<option>${escapeHtml(value)}</option>`).join('');
+      if (options.includes(current)) {
+        select.value = current;
+      }
+    }
+
+    function applyFilters() {
+      const term = normalizeText(els.searchInput.value);
+      const line = els.lineFilter.value;
+      const shift = els.shiftFilter.value;
+      const activity = els.activityFilter.value;
+      const direction = els.directionFilter.value;
+
+      state.filtered = state.rows.filter(row => {
+        if (line && row.values[4] !== line) return false;
+        if (shift && row.values[5] !== shift) return false;
+        if (activity && row.values[20] !== activity) return false;
+        if (direction && row.values[18] !== direction) return false;
+        if (term && !normalizeText(row.values.join(' ')).includes(term)) return false;
+        return true;
+      });
+
+      sortRows();
+      state.page = Math.min(state.page, totalPages()) || 1;
+      render();
+    }
+
+    function sortRows() {
+      if (state.sortColumn === null) return;
+      const multiplier = state.sortDirection === 'asc' ? 1 : -1;
+      state.filtered.sort((a, b) => {
+        const av = a.values[state.sortColumn] || '';
+        const bv = b.values[state.sortColumn] || '';
+        return av.localeCompare(bv, 'pt-BR', { numeric: true }) * multiplier;
+      });
+    }
+
+    function render() {
+      els.totalRows.textContent = state.rows.length.toLocaleString('pt-BR');
+      els.filteredRows.textContent = state.filtered.length.toLocaleString('pt-BR');
+      els.totalColumns.textContent = state.columns.length.toLocaleString('pt-BR');
+
+      if (!state.filtered.length) {
+        showMessage('Nenhum registro encontrado para os filtros atuais.');
+        return;
+      }
+
+      els.message.hidden = true;
+      els.table.hidden = false;
+      renderHeader();
+      renderBody();
+      renderPager();
+    }
+
+    function renderHeader() {
+      const headers = ['#', ...state.columns];
+      els.thead.innerHTML = `<tr>${headers.map((name, index) => {
+        const dataIndex = index - 1;
+        const marker = dataIndex === state.sortColumn ? (state.sortDirection === 'asc' ? ' ^' : ' v') : '';
+        return `<th data-column="${dataIndex}">${escapeHtml(name + marker)}</th>`;
+      }).join('')}</tr>`;
+    }
+
+    function renderBody() {
+      const pageSize = Number(els.pageSize.value);
+      const start = (state.page - 1) * pageSize;
+      const visibleRows = state.filtered.slice(start, start + pageSize);
+
+      els.tbody.innerHTML = visibleRows.map(row => {
+        const cells = row.values.map((value, index) => {
+          const classes = [
+            [8, 9, 21, 22].includes(index) ? 'time' : '',
+            index === 20 ? 'activity' : ''
+          ].filter(Boolean).join(' ');
+          return `<td class="${classes}">${formatCell(value, index)}</td>`;
+        }).join('');
+        return `<tr><td>${row.id}</td>${cells}</tr>`;
+      }).join('');
+    }
+
+    function renderPager() {
+      const pages = totalPages();
+      els.pageInfo.textContent = `Pagina ${state.page} de ${pages}`;
+      els.prevPage.disabled = state.page <= 1;
+      els.nextPage.disabled = state.page >= pages;
+    }
+
+    function totalPages() {
+      return Math.max(1, Math.ceil(state.filtered.length / Number(els.pageSize.value)));
+    }
+
+    function formatCell(value, index) {
+      const safe = escapeHtml(value);
+      if (index === 18 && value) {
+        return `<span class="tag ${value === 'V' ? 'alt' : ''}">${safe}</span>`;
+      }
+      return safe;
+    }
+
+    function showMessage(text, isError = false) {
+      els.table.hidden = true;
+      els.message.hidden = false;
+      els.message.className = isError ? 'message error' : 'message';
+      els.message.textContent = text;
+      renderPager();
+    }
+
+    function exportFiltered() {
+      if (!state.filtered.length) return;
+      const lines = [
+        state.columns.join(';'),
+        ...state.filtered.map(row => row.values.map(csvEscape).join(';'))
+      ];
+      const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'planilha-filtrada.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvEscape(value) {
+      const text = String(value ?? '');
+      return /[;"\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+    }
+
+    function normalizeText(value) {
+      return String(value)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    els.reloadBtn.addEventListener('click', loadCsv);
+    els.exportBtn.addEventListener('click', exportFiltered);
+    els.searchInput.addEventListener('input', () => {
+      state.page = 1;
+      applyFilters();
+    });
+
+    [els.lineFilter, els.shiftFilter, els.activityFilter, els.directionFilter, els.pageSize].forEach(element => {
+      element.addEventListener('change', () => {
+        state.page = 1;
+        applyFilters();
+      });
+    });
+
+    els.prevPage.addEventListener('click', () => {
+      state.page = Math.max(1, state.page - 1);
+      render();
+    });
+
+    els.nextPage.addEventListener('click', () => {
+      state.page = Math.min(totalPages(), state.page + 1);
+      render();
+    });
+
+    els.thead.addEventListener('click', event => {
+      const th = event.target.closest('th');
+      if (!th) return;
+      const column = Number(th.dataset.column);
+      if (column < 0) return;
+      if (state.sortColumn === column) {
+        state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+      } else {
+        state.sortColumn = column;
+        state.sortDirection = 'asc';
+      }
+      applyFilters();
+    });
+
+    loadCsv();
+  </script>
+</body>
+</html>
