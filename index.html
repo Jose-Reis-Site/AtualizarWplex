@@ -386,7 +386,7 @@
         </label>
       </div>
 
-      <div class="source-row advanced">
+      <div class="source-row advanced" hidden>
         <label>
           URL do Web App
           <input id="apiUrl" type="url" spellcheck="false" placeholder="Cole aqui a URL do Apps Script">
@@ -611,7 +611,7 @@
 
     function buildFilters() {
       fillSelect(els.lineFilter, state.rows.map(row => row.service.line || row.values[4]), 'Todas');
-      fillSelect(els.tableFilter, state.rows.map(row => row.values[6]), 'Todas');
+      refreshTableFilter();
     }
 
     function fillSelect(select, values, allLabel) {
@@ -640,6 +640,22 @@
       sortRows();
       state.page = Math.min(state.page, totalPages()) || 1;
       render();
+    }
+
+    function refreshTableFilter() {
+      const current = els.tableFilter.value;
+      const date = els.dateFilter.value;
+      const line = els.lineFilter.value;
+      const rowsForTable = state.rows.filter(row => {
+        if (date && row.service.dateIso !== date) return false;
+        if (line && (row.service.line || row.values[4]) !== line) return false;
+        return true;
+      });
+
+      fillSelect(els.tableFilter, rowsForTable.map(row => row.values[6]), 'Todas');
+      if (current && [...els.tableFilter.options].some(option => option.value === current)) {
+        els.tableFilter.value = current;
+      }
     }
 
     function sortRows() {
@@ -914,10 +930,17 @@
     });
     els.dateFilter.addEventListener('change', () => {
       state.page = 1;
+      refreshTableFilter();
       applyFilters();
     });
 
-    [els.lineFilter, els.tableFilter, els.pageSize].forEach(element => {
+    els.lineFilter.addEventListener('change', () => {
+      state.page = 1;
+      refreshTableFilter();
+      applyFilters();
+    });
+
+    [els.tableFilter, els.pageSize].forEach(element => {
       element.addEventListener('change', () => {
         state.page = 1;
         applyFilters();
