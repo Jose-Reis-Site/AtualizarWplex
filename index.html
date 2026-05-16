@@ -33,15 +33,15 @@
     }
 
     header {
-      background: #12343b;
+      background: #173b45;
       color: #fff;
-      padding: 22px clamp(16px, 4vw, 40px);
+      padding: 18px clamp(16px, 4vw, 40px);
       border-bottom: 4px solid var(--brand);
     }
 
     h1 {
       margin: 0 0 6px;
-      font-size: clamp(24px, 4vw, 38px);
+      font-size: clamp(22px, 4vw, 34px);
       font-weight: 800;
       letter-spacing: 0;
     }
@@ -82,7 +82,7 @@
 
     .filters {
       display: grid;
-      grid-template-columns: 1.6fr repeat(5, minmax(130px, 1fr));
+      grid-template-columns: 1.6fr repeat(3, minmax(150px, 1fr)) minmax(140px, 0.7fr);
       gap: 10px;
     }
 
@@ -138,14 +138,14 @@
     }
 
     button.small {
-      min-height: 30px;
-      padding: 0 10px;
+      min-height: 32px;
+      padding: 0 12px;
       font-size: 12px;
     }
 
     .statusbar {
-      margin: 14px 0;
-      padding: 13px 16px;
+      margin: 12px 0;
+      padding: 11px 14px;
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
@@ -185,14 +185,14 @@
 
     .table-wrap {
       overflow: auto;
-      max-height: calc(100vh - 270px);
+      max-height: calc(100vh - 255px);
     }
 
     table {
       border-collapse: separate;
       border-spacing: 0;
       width: 100%;
-      min-width: 1380px;
+      min-width: 1180px;
       font-size: 13px;
     }
 
@@ -230,9 +230,24 @@
       font-weight: 800;
     }
 
+    td.driver-cell {
+      color: var(--brand-dark);
+      font-weight: 800;
+    }
+
     td.time {
       font-variant-numeric: tabular-nums;
       font-weight: 700;
+    }
+
+    .source-row.advanced {
+      padding-top: 4px;
+      border-top: 1px solid var(--line-soft);
+    }
+
+    .service-code {
+      font-weight: 800;
+      color: #263544;
     }
 
     .tag {
@@ -337,45 +352,28 @@
 </head>
 <body>
   <header>
-    <h1>Planilha web</h1>
-    <p class="subtitle">Leitura do CSV publico do Google Sheets, com as linhas separadas por ponto e virgula e exibidas em formato de tabela.</p>
+    <h1>Escala Wplex</h1>
+    <p class="subtitle">Busca por data, linha e tabela com edicao direta da matricula na planilha base.</p>
   </header>
 
   <main>
     <section class="toolbar" aria-label="Controles da planilha">
-      <div class="source-row">
-        <label>
-          URL do CSV
-          <input id="csvUrl" type="url" spellcheck="false">
-        </label>
-        <label>
-          URL do Web App
-          <input id="apiUrl" type="url" spellcheck="false" placeholder="Cole aqui a URL do Apps Script">
-        </label>
-        <button id="reloadBtn" type="button">Atualizar dados</button>
-        <button id="exportBtn" type="button" class="secondary">Exportar filtrado</button>
-      </div>
-
       <div class="filters">
         <label>
           Busca livre
-          <input id="searchInput" type="search" placeholder="Linha, carro, motorista, local...">
+          <input id="searchInput" type="search" placeholder="Servico, carro, matricula, local...">
+        </label>
+        <label>
+          Data
+          <input id="dateFilter" type="date">
         </label>
         <label>
           Linha
           <select id="lineFilter"></select>
         </label>
         <label>
-          Turno
-          <select id="shiftFilter"></select>
-        </label>
-        <label>
-          Atividade
-          <select id="activityFilter"></select>
-        </label>
-        <label>
-          Sentido
-          <select id="directionFilter"></select>
+          Tabela
+          <select id="tableFilter"></select>
         </label>
         <label>
           Registros por pagina
@@ -386,6 +384,19 @@
             <option>1000</option>
           </select>
         </label>
+      </div>
+
+      <div class="source-row advanced">
+        <label>
+          URL do Web App
+          <input id="apiUrl" type="url" spellcheck="false" placeholder="Cole aqui a URL do Apps Script">
+        </label>
+        <label>
+          URL do CSV alternativo
+          <input id="csvUrl" type="url" spellcheck="false">
+        </label>
+        <button id="reloadBtn" type="button">Atualizar dados</button>
+        <button id="exportBtn" type="button" class="secondary">Exportar filtrado</button>
       </div>
     </section>
 
@@ -441,6 +452,13 @@
     const DEFAULT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4odiCG64QbgNSla-P0oPnwUOpbmLg1GFdl07lCD-9rR8zd7FYllTnlJQm5115TxVtA9MjEh_O7RpU/pub?gid=1235803740&single=true&output=csv';
     const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzJ1fI2lHr_LeLFGFqV5Y8Ciwdgk4ZHYfXbXPYgovGzOO6IZN4LRQQTnh88RHArgtta/exec';
     const DRIVER_COLUMN_INDEX = 26;
+    const VISIBLE_COLUMN_INDEXES = [2, 4, 6, 8, 9, 18, 19, 20, 21, 22, 23, 25, 26];
+    const DAY_TYPE_LABELS = {
+      U: 'Util',
+      S: 'Sabado',
+      D: 'Domingo',
+      F: 'Feriado'
+    };
 
     const COLUMN_NAMES = [
       'Empresa',
@@ -491,10 +509,9 @@
       reloadBtn: document.querySelector('#reloadBtn'),
       exportBtn: document.querySelector('#exportBtn'),
       searchInput: document.querySelector('#searchInput'),
+      dateFilter: document.querySelector('#dateFilter'),
       lineFilter: document.querySelector('#lineFilter'),
-      shiftFilter: document.querySelector('#shiftFilter'),
-      activityFilter: document.querySelector('#activityFilter'),
-      directionFilter: document.querySelector('#directionFilter'),
+      tableFilter: document.querySelector('#tableFilter'),
       pageSize: document.querySelector('#pageSize'),
       totalRows: document.querySelector('#totalRows'),
       filteredRows: document.querySelector('#filteredRows'),
@@ -539,7 +556,8 @@
       state.columns = Array.from({ length: maxColumns }, (_, index) => COLUMN_NAMES[index] || `Campo ${index + 1}`);
       return rows.map(row => ({
         ...row,
-        values: Array.from({ length: maxColumns }, (_, index) => row.values[index] || '')
+        values: Array.from({ length: maxColumns }, (_, index) => row.values[index] || ''),
+        service: parseService(row.values[2] || '')
       }));
     }
 
@@ -592,10 +610,8 @@
     }
 
     function buildFilters() {
-      fillSelect(els.lineFilter, state.rows.map(row => row.values[4]), 'Todas');
-      fillSelect(els.shiftFilter, state.rows.map(row => row.values[5]), 'Todos');
-      fillSelect(els.activityFilter, state.rows.map(row => row.values[20]), 'Todas');
-      fillSelect(els.directionFilter, state.rows.map(row => row.values[18]), 'Todos');
+      fillSelect(els.lineFilter, state.rows.map(row => row.service.line || row.values[4]), 'Todas');
+      fillSelect(els.tableFilter, state.rows.map(row => row.values[6]), 'Todas');
     }
 
     function fillSelect(select, values, allLabel) {
@@ -609,17 +625,15 @@
 
     function applyFilters() {
       const term = normalizeText(els.searchInput.value);
+      const date = els.dateFilter.value;
       const line = els.lineFilter.value;
-      const shift = els.shiftFilter.value;
-      const activity = els.activityFilter.value;
-      const direction = els.directionFilter.value;
+      const table = els.tableFilter.value;
 
       state.filtered = state.rows.filter(row => {
-        if (line && row.values[4] !== line) return false;
-        if (shift && row.values[5] !== shift) return false;
-        if (activity && row.values[20] !== activity) return false;
-        if (direction && row.values[18] !== direction) return false;
-        if (term && !normalizeText(row.values.join(' ')).includes(term)) return false;
+        if (date && row.service.dateIso !== date) return false;
+        if (line && (row.service.line || row.values[4]) !== line) return false;
+        if (table && row.values[6] !== table) return false;
+        if (term && !normalizeText(row.values.join(' ') + ' ' + row.service.dateBr + ' ' + row.service.dayType).includes(term)) return false;
         return true;
       });
 
@@ -632,16 +646,22 @@
       if (state.sortColumn === null) return;
       const multiplier = state.sortDirection === 'asc' ? 1 : -1;
       state.filtered.sort((a, b) => {
-        const av = a.values[state.sortColumn] || '';
-        const bv = b.values[state.sortColumn] || '';
+        const av = getSortValue(a, state.sortColumn);
+        const bv = getSortValue(b, state.sortColumn);
         return av.localeCompare(bv, 'pt-BR', { numeric: true }) * multiplier;
       });
+    }
+
+    function getSortValue(row, key) {
+      if (key === 'date') return row.service.dateIso || '';
+      if (key === 'dayType') return row.service.dayType || '';
+      return row.values[Number(key)] || '';
     }
 
     function render() {
       els.totalRows.textContent = state.rows.length.toLocaleString('pt-BR');
       els.filteredRows.textContent = state.filtered.length.toLocaleString('pt-BR');
-      els.totalColumns.textContent = state.columns.length.toLocaleString('pt-BR');
+      els.totalColumns.textContent = getDisplayColumns().length.toLocaleString('pt-BR');
       els.saveMode.textContent = hasApiUrl() ? 'Web App' : 'CSV';
 
       if (!state.filtered.length) {
@@ -657,11 +677,14 @@
     }
 
     function renderHeader() {
-      const headers = ['#', 'Acao', ...state.columns];
-      els.thead.innerHTML = `<tr>${headers.map((name, index) => {
-        const dataIndex = index - 2;
-        const marker = dataIndex === state.sortColumn ? (state.sortDirection === 'asc' ? ' ^' : ' v') : '';
-        return `<th data-column="${dataIndex}">${escapeHtml(name + marker)}</th>`;
+      const headers = [
+        { label: '#', key: '' },
+        { label: 'Acao', key: '' },
+        ...getDisplayColumns()
+      ];
+      els.thead.innerHTML = `<tr>${headers.map(column => {
+        const marker = String(column.key) === String(state.sortColumn) ? (state.sortDirection === 'asc' ? ' ^' : ' v') : '';
+        return `<th data-column="${escapeHtml(column.key)}">${escapeHtml(column.label + marker)}</th>`;
       }).join('')}</tr>`;
     }
 
@@ -669,17 +692,37 @@
       const pageSize = Number(els.pageSize.value);
       const start = (state.page - 1) * pageSize;
       const visibleRows = state.filtered.slice(start, start + pageSize);
+      const displayColumns = getDisplayColumns();
 
       els.tbody.innerHTML = visibleRows.map(row => {
-        const cells = row.values.map((value, index) => {
+        const cells = displayColumns.map(column => {
+          const value = column.get(row);
           const classes = [
-            [8, 9, 21, 22].includes(index) ? 'time' : '',
-            index === 20 ? 'activity' : ''
+            column.time ? 'time' : '',
+            column.index === 20 ? 'activity' : '',
+            column.index === DRIVER_COLUMN_INDEX ? 'driver-cell' : ''
           ].filter(Boolean).join(' ');
-          return `<td class="${classes}">${formatCell(value, index)}</td>`;
+          return `<td class="${classes}">${formatCell(value, column)}</td>`;
         }).join('');
         return `<tr><td>${row.id}</td><td><button class="small secondary" type="button" data-edit-row="${row.id}">Editar</button></td>${cells}</tr>`;
       }).join('');
+    }
+
+    function getDisplayColumns() {
+      const baseColumns = VISIBLE_COLUMN_INDEXES.map(index => ({
+        key: String(index),
+        index,
+        label: index === DRIVER_COLUMN_INDEX ? 'Matricula' : state.columns[index],
+        time: [8, 9, 21, 22].includes(index),
+        get: row => row.values[index] || ''
+      }));
+
+      return [
+        baseColumns[0],
+        { key: 'date', label: 'Data', time: true, get: row => row.service.dateBr || '' },
+        { key: 'dayType', label: 'Dia', get: row => row.service.dayType || '' },
+        ...baseColumns.slice(1)
+      ];
     }
 
     function renderPager() {
@@ -693,9 +736,12 @@
       return Math.max(1, Math.ceil(state.filtered.length / Number(els.pageSize.value)));
     }
 
-    function formatCell(value, index) {
+    function formatCell(value, column) {
       const safe = escapeHtml(value);
-      if (index === 18 && value) {
+      if (column.index === 2 && value) {
+        return `<span class="service-code">${safe}</span>`;
+      }
+      if (column.index === 18 && value) {
         return `<span class="tag ${value === 'V' ? 'alt' : ''}">${safe}</span>`;
       }
       return safe;
@@ -715,9 +761,9 @@
       if (!row) return;
 
       state.editingRow = row;
-      els.editLine.textContent = row.values[4] || '-';
+      els.editLine.textContent = row.service.line || row.values[4] || '-';
       els.editCar.textContent = row.values[25] || '-';
-      els.editService.textContent = row.values[2] || '-';
+      els.editService.textContent = row.service.dateBr ? `${row.values[2]} - ${row.service.dateBr}` : row.values[2] || '-';
       els.editRow.textContent = row.sheetRow || row.id;
       els.driverInput.value = row.values[DRIVER_COLUMN_INDEX] || '';
       els.editMessage.hidden = true;
@@ -779,9 +825,10 @@
 
     function exportFiltered() {
       if (!state.filtered.length) return;
+      const displayColumns = getDisplayColumns();
       const lines = [
-        state.columns.join(';'),
-        ...state.filtered.map(row => row.values.map(csvEscape).join(';'))
+        displayColumns.map(column => column.label).join(';'),
+        ...state.filtered.map(row => displayColumns.map(column => csvEscape(column.get(row))).join(';'))
       ];
       const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -811,6 +858,34 @@
       return url.toString();
     }
 
+    function parseService(service) {
+      const text = String(service || '').trim();
+      const match = text.match(/^(.+?)([A-Za-z])(\d{6})$/);
+      if (!match) {
+        return {
+          line: '',
+          dayCode: '',
+          dayType: '',
+          dateIso: '',
+          dateBr: ''
+        };
+      }
+
+      const [, line, dayCodeRaw, dateRaw] = match;
+      const dayCode = dayCodeRaw.toUpperCase();
+      const day = dateRaw.slice(0, 2);
+      const month = dateRaw.slice(2, 4);
+      const year = '20' + dateRaw.slice(4, 6);
+
+      return {
+        line,
+        dayCode,
+        dayType: DAY_TYPE_LABELS[dayCode] || dayCode,
+        dateIso: `${year}-${month}-${day}`,
+        dateBr: `${day}/${month}/${year}`
+      };
+    }
+
     function normalizeText(value) {
       return String(value)
         .normalize('NFD')
@@ -837,8 +912,12 @@
       state.page = 1;
       applyFilters();
     });
+    els.dateFilter.addEventListener('change', () => {
+      state.page = 1;
+      applyFilters();
+    });
 
-    [els.lineFilter, els.shiftFilter, els.activityFilter, els.directionFilter, els.pageSize].forEach(element => {
+    [els.lineFilter, els.tableFilter, els.pageSize].forEach(element => {
       element.addEventListener('change', () => {
         state.page = 1;
         applyFilters();
@@ -858,8 +937,8 @@
     els.thead.addEventListener('click', event => {
       const th = event.target.closest('th');
       if (!th) return;
-      const column = Number(th.dataset.column);
-      if (column < 0) return;
+      const column = th.dataset.column;
+      if (!column) return;
       if (state.sortColumn === column) {
         state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
       } else {
