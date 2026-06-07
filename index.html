@@ -90,18 +90,6 @@
         .btn-danger:hover { background-color: #d32f2f; }
         .btn-secondary { background-color: #78909c; color: white; }
         .btn-secondary:hover { background-color: #546e7a; }
-        
-        .btn-row-save {
-            padding: 4px 8px;
-            font-size: 11px;
-            background-color: #0288d1;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            display: none;
-        }
-        .btn-row-save:hover { background-color: #01579b; }
 
         .file-input-wrapper {
             position: relative;
@@ -374,7 +362,6 @@
             <thead>
                 <tr>
                     <th style="width: 40px;"><input type="checkbox" id="selectAll" onclick="toggleSelecionarTodos(this)"></th>
-                    <th style="width: 90px;">Ações</th>
                     <th class="sortable-header" onclick="ordenarTabelaPorColuna('empresa')">Empresa <span id="sort-empresa" class="sort-icon">↕</span></th>
                     <th class="sortable-header" onclick="ordenarTabelaPorColuna('filial')">Filial <span id="sort-filial" class="sort-icon">↕</span></th>
                     <th class="sortable-header" onclick="ordenarTabelaPorColuna('data')">Data (dd/mm/aaaa) <span id="sort-data" class="sort-icon">↕</span></th>
@@ -388,7 +375,6 @@
                     <th class="sortable-header" onclick="ordenarTabelaPorColuna('matricula')">Matrícula <span id="sort-matricula" class="sort-icon">↕</span></th>
                 </tr>
                 <tr class="filter-row">
-                    <th></th>
                     <th></th>
                     <th><input type="text" class="filter-input" data-col="empresa" placeholder="Ex: TCCC..." oninput="filtrarTabelaLocal()"></th>
                     <th><input type="text" class="filter-input" data-col="filial" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
@@ -405,7 +391,7 @@
             </thead>
             <tbody id="tableBody">
                 <tr>
-                    <td colspan="13" style="text-align: center; color: #757575; padding: 20px;">Utilize o painel acima para buscar os dados do Firebase ou Importe um novo arquivo CSV.</td>
+                    <td colspan="12" style="text-align: center; color: #757575; padding: 20px;">Utilize o painel acima para buscar os dados do Firebase ou Importe um novo arquivo CSV.</td>
                 </tr>
             </tbody>
         </table>
@@ -720,12 +706,13 @@
         });
     }
 
+    // Renderização sem a coluna Ações e com escuta da tecla Enter
     window.renderizarTabela = function() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
 
         if (dadosEscala.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; color: #757575; padding: 20px;">Nenhum registro encontrado para essa pesquisa.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; color: #757575; padding: 20px;">Nenhum registro encontrado para essa pesquisa.</td></tr>`;
             atualizarContador(0, 0);
             return;
         }
@@ -765,27 +752,38 @@
                 tr.classList.add('row-modified');
             }
 
+            // Injetado o manipulador onkeydown na tag <tr> para monitorar o Enter universalmente na linha
             tr.innerHTML = `
                 <td><input type="checkbox" class="row-select" value="${item.uid}"></td>
-                <td>
-                    <button id="btn-save-${item.uid}" class="btn-row-save" onclick="abrirModalJustificativa('${item.uid}')" style="display: ${item._modificado ? 'inline-block' : 'none'};">💾 Salvar</button>
-                </td>
-                <td><input type="text" class="cell-editable" value="${item.empresa}" oninput="marcarLinhaComoModificada('${item.uid}', 'empresa', this.value)"></td>
-                <td><input type="text" class="cell-editable" value="${item.filial}" oninput="marcarLinhaComoModificada('${item.uid}', 'filial', this.value)"></td>
-                <td><input type="text" class="cell-editable" value="${item.data}" oninput="marcarLinhaComoModificada('${item.uid}', 'data', this.value)"></td>
-                <td><input type="text" class="cell-editable" value="${item.dia_tipo}" oninput="marcarLinhaComoModificada('${item.uid}', 'dia_tipo', this.value)"></td>
-                <td><input type="text" class="cell-editable" value="${item.linha}" oninput="marcarLinhaComoModificada('${item.uid}', 'linha', this.value)"></td>
-                <td><input type="text" class="cell-editable" value="${item.tripulante}" oninput="marcarLinhaComoModificada('${item.uid}', 'tripulante', this.value)"></td>
-                <td><input type="text" class="cell-editable" value="${item.jornada_inicio}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_inicio', this.value)"></td>
-                <td><input type="text" class="cell-editable" value="${item.jornada_fim}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_fim', this.value)"></td>
-                <td><input type="text" class="cell-editable" value="${item.local}" oninput="marcarLinhaComoModificada('${item.uid}', 'local', this.value)"></td>
-                <td><input type="text" class="cell-editable" value="${item.veiculo}" oninput="marcarLinhaComoModificada('${item.uid}', 'veiculo', this.value)"></td>
-                <td><input type="text" class="cell-editable" value="${item.matricula}" oninput="marcarLinhaComoModificadaMatricula('${item.uid}', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.empresa}" oninput="marcarLinhaComoModificada('${item.uid}', 'empresa', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.filial}" oninput="marcarLinhaComoModificada('${item.uid}', 'filial', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.data}" oninput="marcarLinhaComoModificada('${item.uid}', 'data', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.dia_tipo}" oninput="marcarLinhaComoModificada('${item.uid}', 'dia_tipo', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.linha}" oninput="marcarLinhaComoModificada('${item.uid}', 'linha', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.tripulante}" oninput="marcarLinhaComoModificada('${item.uid}', 'tripulante', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.jornada_inicio}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_inicio', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.jornada_fim}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_fim', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.local}" oninput="marcarLinhaComoModificada('${item.uid}', 'local', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.veiculo}" oninput="marcarLinhaComoModificada('${item.uid}', 'veiculo', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.matricula}" oninput="marcarLinhaComoModificadaMatricula('${item.uid}', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
             `;
             tbody.appendChild(tr);
         });
 
         atualizarContador(visiveis, dadosEscala.length);
+    };
+
+    // MELHORIA: Intercepta a digitação. Se for Enter, interrompe o comportamento padrão e invoca o modal
+    window.verificarTeclaEnter = function(event, uid) {
+        if (event.key === "Enter") {
+            event.preventDefault(); // Impede que o cursor mude de linha ou quebre o input
+            const item = dadosEscala.find(d => d.uid === uid);
+            if (item && item._modificado) {
+                // Remove o foco do input atual para consolidar a digitação na tela
+                if (document.activeElement) document.activeElement.blur();
+                window.abrirModalJustificativa(uid);
+            }
+        }
     };
 
     window.marcarLinhaComoModificada = function(uid, campo, valor) {
@@ -796,10 +794,7 @@
             if (!item._modificado) {
                 item._modificado = true;
                 const elementoTr = document.getElementById(`tr-row-${uid}`);
-                const elementoBtn = document.getElementById(`btn-save-${uid}`);
                 if (elementoTr) elementoTr.classList.add('row-modified');
-                if (elementoBtn) elementoBtn.style.display = 'inline-block';
-                
                 atualizarContadorModificados();
             }
         }
@@ -813,10 +808,7 @@
             if (!item._modificado) {
                 item._modificado = true;
                 const elementoTr = document.getElementById(`tr-row-${uid}`);
-                const elementoBtn = document.getElementById(`btn-save-${uid}`);
                 if (elementoTr) elementoTr.classList.add('row-modified');
-                if (elementoBtn) elementoBtn.style.display = 'inline-block';
-                
                 atualizarContadorModificados();
             }
         }
@@ -830,16 +822,10 @@
         }
     }
 
-    // CORREÇÃO MÁXIMA: Sincronização forçada do estado síncrono antes do redesenho
+    // Executa a persistência limpa na Firebase
     async function executarSalvarLinhaUnica(uid, dadosJustificativa) {
         const dados = dadosEscala.find(d => d.uid === uid);
         if (!dados || !dados._modificado) return;
-
-        const elementoBtn = document.getElementById(`btn-save-${uid}`);
-        if (elementoBtn) {
-            elementoBtn.disabled = true;
-            elementoBtn.innerText = "Aguarde...";
-        }
 
         try {
             let docRef;
@@ -868,23 +854,18 @@
                 docRef = doc(collection(db, "escalas_tccc"));
                 await setDoc(docRef, dadosParaSalvar);
                 dados.id = docRef.id;
-                dados.uid = docRef.id; // CRUCIAL: Atualiza o UID de rascunho CSV para o ID permanente da nuvem
+                dados.uid = docRef.id; 
             }
 
-            // AÇÃO RÁPIDA: Desliga o estado de rascunho IMEDIATAMENTE na memória de forma blindada
+            // SUCESSO GARANTIDO: Limpa o estado e redesenha a tabela de forma limpa
             dados._modificado = false;
             atualizarContadorModificados();
-            
-            // Força a remontagem limpa da interface
             renderizarTabela();
-            mostrarStatus(`Registro (Matrícula ${matriculaFormatadaSeisCasas}) salvo individualmente com sucesso!`, 'success');
+            
+            mostrarStatus(`Registro (Matrícula ${matriculaFormatadaSeisCasas}) salvo com sucesso via Enter!`, 'success');
         } catch (err) {
-            alert("Erro crítico no Firebase: " + err.message); // Tira o erro da obscuridade silenciosa
+            alert("Erro ao gravar no Firebase: " + err.message);
             mostrarStatus(`Erro ao salvar linha: ${err.message}`, 'error');
-            if (elementoBtn) {
-                elementoBtn.disabled = false;
-                elementoBtn.innerText = "💾 Salvar";
-            }
         }
     }
 
@@ -923,7 +904,7 @@
     };
 
     async function executarSalvarTudoFirebase(dadosJustificativa) {
-        const linhasModificadas = dadosEscala.filter(d => d._modificado);
+        const linesModificadas = dadosEscala.filter(d => d._modificado);
 
         const btn = document.querySelector('button[onclick="abrirModalJustificativa(\'todos\')"]');
         const progressContainer = document.getElementById('progressContainer');
@@ -951,10 +932,10 @@
             const tamanhoLote = 400;
             let totalSalvo = 0;
 
-            if (linhasModificadas.length > 0) {
-                for (let i = 0; i < linhasModificadas.length; i += tamanhoLote) {
+            if (linesModificadas.length > 0) {
+                for (let i = 0; i < linesModificadas.length; i += tamanhoLote) {
                     const batch = writeBatch(db);
-                    const pedaco = linhasModificadas.slice(i, i + tamanhoLote);
+                    const pedaco = linesModificadas.slice(i, i + tamanhoLote);
 
                     pedaco.forEach((dados) => {
                         let docRef;
@@ -991,7 +972,7 @@
 
                     await batch.commit();
                     totalSalvo += pedaco.length;
-                    progressBar.style.width = Math.round((totalSalvo / linhasModificadas.length) * 100) + '%';
+                    progressBar.style.width = Math.round((totalSalvo / linesModificadas.length) * 100) + '%';
                 }
             }
 
