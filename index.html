@@ -483,7 +483,6 @@
         return numPuro.padStart(6, '0');
     }
 
-    // Gerenciamento do Modal de Justificativas
     window.abrirModalJustificativa = function(escopo) {
         if (escopo === 'todos') {
             const linhasModificadas = dadosEscala.filter(d => d._modificado);
@@ -544,12 +543,10 @@
         if (escopoSalvamentoAtual === 'todos') {
             executarSalvarTudoFirebase(dadosJustificativa);
         } else {
-            // escopoSalvamentoAtual agora guarda o uid estável do registro
             executarSalvarLinhaUnica(escopoSalvamentoAtual, dadosJustificativa);
         }
     };
 
-    // Importar Novo CSV localmente
     document.getElementById('csvFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -575,7 +572,7 @@
                     if (!jornadasUnicas.has(chaveUnica)) {
                         jornadasUnicas.set(chaveUnica, {
                             id: null,
-                            uid: 'csv_' + Math.random().toString(36).substr(2, 9), // ID estável em memória
+                            uid: 'csv_' + Math.random().toString(36).substr(2, 9), 
                             empresa: valores[0] || "",
                             filial: valores[1] || "",
                             data: extrairDataCodigo(codigo) || "",
@@ -604,7 +601,6 @@
         reader.readAsText(file, "UTF-8");
     });
 
-    // Buscar no Firebase
     window.buscarDoFirebaseFiltrado = async function() {
         mostrarStatus('Buscando dados no Firebase...', 'info');
         
@@ -641,7 +637,7 @@
                 const data = doc.data();
                 dadosEscala.push({
                     id: doc.id,
-                    uid: doc.id, // ID estável vindo do banco
+                    uid: doc.id, 
                     empresa: data.empresa || "",
                     filial: data.filial || "",
                     data: data.data || "",
@@ -673,7 +669,6 @@
         buscarDoFirebaseFiltrado();
     };
 
-    // Ordenação
     window.ordenarTabelaPorColuna = function(coluna) {
         if (dadosEscala.length === 0) return;
 
@@ -725,7 +720,6 @@
         });
     }
 
-    // Renderização da tabela baseada em UID estável
     window.renderizarTabela = function() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
@@ -836,7 +830,7 @@
         }
     }
 
-    // RESOLVIDO: Busca estável por UID garante a limpeza visual e reset da linha
+    // CORREÇÃO MÁXIMA: Sincronização forçada do estado síncrono antes do redesenho
     async function executarSalvarLinhaUnica(uid, dadosJustificativa) {
         const dados = dadosEscala.find(d => d.uid === uid);
         if (!dados || !dados._modificado) return;
@@ -874,16 +868,18 @@
                 docRef = doc(collection(db, "escalas_tccc"));
                 await setDoc(docRef, dadosParaSalvar);
                 dados.id = docRef.id;
-                dados.uid = docRef.id; // Vincula o ID definitivo da Firebase
+                dados.uid = docRef.id; // CRUCIAL: Atualiza o UID de rascunho CSV para o ID permanente da nuvem
             }
 
+            // AÇÃO RÁPIDA: Desliga o estado de rascunho IMEDIATAMENTE na memória de forma blindada
             dados._modificado = false;
             atualizarContadorModificados();
             
-            // Redesencadeia a renderização limpa para atualizar IDs e sumir com botões e cores amarelas
+            // Força a remontagem limpa da interface
             renderizarTabela();
             mostrarStatus(`Registro (Matrícula ${matriculaFormatadaSeisCasas}) salvo individualmente com sucesso!`, 'success');
         } catch (err) {
+            alert("Erro crítico no Firebase: " + err.message); // Tira o erro da obscuridade silenciosa
             mostrarStatus(`Erro ao salvar linha: ${err.message}`, 'error');
             if (elementoBtn) {
                 elementoBtn.disabled = false;
@@ -896,7 +892,6 @@
         renderizarTabela();
     };
 
-    // Marcar exclusão
     window.deletarLinhasSelecionadas = function() {
         const checkboxes = document.querySelectorAll('.row-select:checked');
         if (checkboxes.length === 0) {
@@ -908,7 +903,6 @@
             return;
         }
 
-        // Mapeia uids estáveis para exclusão coerente
         const uidsParaRemover = Array.from(checkboxes).map(cb => cb.value);
 
         uidsParaRemover.forEach(uid => {
@@ -928,7 +922,6 @@
         mostrarStatus(`${uidsParaRemover.length} itens prontos para descarte no Firebase. Clique em Salvar Modificações para concluir.`, 'info');
     };
 
-    // Salvar Tudo em Lote Otimizado
     async function executarSalvarTudoFirebase(dadosJustificativa) {
         const linhasModificadas = dadosEscala.filter(d => d._modificado);
 
@@ -1006,6 +999,7 @@
             renderizarTabela(); 
             mostrarStatus('Operação inteligente concluída! Alterações documentadas com sucesso.', 'success');
         } catch (err) {
+            alert("Erro crítico no Firebase em lote: " + err.message);
             mostrarStatus('Erro ao sincronizar dados: ' + err.message, 'error');
         } finally {
             btn.disabled = false;
