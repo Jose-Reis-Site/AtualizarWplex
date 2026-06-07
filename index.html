@@ -1,992 +1,1055 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Planilha web - Programacao</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --bg: #f6f7f9;
-      --panel: #ffffff;
-      --ink: #18212f;
-      --muted: #667085;
-      --line: #d8dee8;
-      --line-soft: #edf0f5;
-      --brand: #0f766e;
-      --brand-dark: #115e59;
-      --accent: #b45309;
-      --danger: #b42318;
-      --shadow: 0 18px 45px rgba(24, 33, 47, 0.08);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Avançado de Escala - TCCC</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        h2 {
+            color: #1a237e;
+            margin-top: 0;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        /* Painel de Filtros de Busca Principal */
+        .search-panel {
+            background: #e8eaf6;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #c5cae9;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .search-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .search-group label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #1a237e;
+        }
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #b0bec5;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 150px;
+        }
+        
+        /* Barra de Ações Administrativas */
+        .actions-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        .btn {
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-search { background-color: #1a237e; color: white; }
+        .btn-search:hover { background-color: #0d134a; }
+        .btn-primary { background-color: #3f51b5; color: white; }
+        .btn-primary:hover { background-color: #303f9f; }
+        .btn-success { background-color: #4caf50; color: white; }
+        .btn-success:hover { background-color: #388e3c; }
+        .btn-danger { background-color: #f44336; color: white; }
+        .btn-danger:hover { background-color: #d32f2f; }
+        .btn-secondary { background-color: #78909c; color: white; }
+        .btn-secondary:hover { background-color: #546e7a; }
+        
+        .btn-row-save {
+            padding: 4px 8px;
+            font-size: 11px;
+            background-color: #0288d1;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            display: none;
+        }
+        .btn-row-save:hover { background-color: #01579b; }
 
-    * {
-      box-sizing: border-box;
-    }
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--ink);
-      font-family: Arial, Helvetica, sans-serif;
-      font-size: 14px;
-    }
+        .row-modified {
+            background-color: #fffde7 !important;
+        }
 
-    header {
-      background: #173b45;
-      color: #fff;
-      padding: 18px clamp(16px, 4vw, 40px);
-      border-bottom: 4px solid var(--brand);
-    }
+        /* Tabela e Filtros por Coluna */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 15px;
+            max-height: 550px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+        thead th {
+            background-color: #37474f;
+            color: white;
+            padding: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .sortable-header:hover {
+            background-color: #455a64;
+        }
+        .sort-icon {
+            font-size: 11px;
+            margin-left: 5px;
+            color: #b0bec5;
+        }
+        .filter-row th {
+            background-color: #eceff1;
+            padding: 5px 8px;
+            position: sticky;
+            top: 38px;
+            z-index: 10;
+        }
+        .filter-input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #cfd8dc;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        tbody td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        tbody tr:hover { background-color: #f5f5f5; }
+        
+        .cell-editable {
+            background-color: #fcfdfa;
+            border: 1px dashed #cfd8dc;
+            padding: 5px;
+            border-radius: 4px;
+            width: 100%;
+            font-size: 13px;
+        }
+        .cell-editable:focus {
+            background-color: #fff;
+            border: 1px solid #3f51b5;
+            outline: none;
+        }
 
-    h1 {
-      margin: 0 0 6px;
-      font-size: clamp(22px, 4vw, 34px);
-      font-weight: 800;
-      letter-spacing: 0;
-    }
+        /* Status e Carregamento */
+        #status {
+            padding: 12px;
+            border-radius: 6px;
+            display: none;
+            font-size: 14px;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+        .info { background-color: #e8eaf6; color: #1a237e; border: 1px solid #c5cae9; }
+        .success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .error { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        
+        .progress-bar-container {
+            width: 100%;
+            background-color: #eceff1;
+            border-radius: 6px;
+            margin-top: 15px;
+            display: none;
+            overflow: hidden;
+        }
+        .progress-bar { width: 0%; height: 12px; background-color: #4caf50; transition: width 0.1s; }
+        
+        .stats-badge {
+            background: #e1f5fe;
+            color: #0288d1;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-left: auto;
+        }
 
-    .subtitle {
-      margin: 0;
-      color: rgba(255, 255, 255, 0.78);
-      max-width: 920px;
-      line-height: 1.45;
-    }
-
-    main {
-      width: min(1500px, calc(100% - 28px));
-      margin: 18px auto 34px;
-    }
-
-    .toolbar,
-    .statusbar,
-    .table-wrap {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-    }
-
-    .toolbar {
-      padding: 16px;
-      display: grid;
-      gap: 14px;
-    }
-
-    .source-row {
-      display: grid;
-      grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto auto;
-      gap: 10px;
-      align-items: end;
-    }
-
-    .filters {
-      display: grid;
-      grid-template-columns: 1.6fr repeat(3, minmax(150px, 1fr)) minmax(140px, 0.7fr);
-      gap: 10px;
-    }
-
-    label {
-      display: grid;
-      gap: 6px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
-    input,
-    select,
-    button {
-      min-height: 40px;
-      border-radius: 6px;
-      border: 1px solid var(--line);
-      font: inherit;
-    }
-
-    input,
-    select {
-      width: 100%;
-      padding: 0 11px;
-      background: #fff;
-      color: var(--ink);
-    }
-
-    button {
-      padding: 0 14px;
-      background: var(--brand);
-      border-color: var(--brand);
-      color: #fff;
-      font-weight: 800;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    button:hover {
-      background: var(--brand-dark);
-      border-color: var(--brand-dark);
-    }
-
-    button.secondary {
-      background: #fff;
-      color: var(--brand-dark);
-      border-color: #9ccac5;
-    }
-
-    button.secondary:hover {
-      background: #e9f5f3;
-    }
-
-    button.small {
-      min-height: 32px;
-      padding: 0 12px;
-      font-size: 12px;
-    }
-
-    .statusbar {
-      margin: 12px 0;
-      padding: 11px 14px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .chip {
-      border: 1px solid var(--line);
-      background: #f9fafb;
-      border-radius: 999px;
-      padding: 7px 10px;
-      color: var(--muted);
-      font-weight: 700;
-    }
-
-    .chip strong {
-      color: var(--ink);
-    }
-
-    .pager {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .pager button {
-      min-height: 34px;
-      padding: 0 10px;
-    }
-
-    .table-wrap {
-      overflow: auto;
-      max-height: calc(100vh - 255px);
-    }
-
-    table {
-      border-collapse: separate;
-      border-spacing: 0;
-      width: 100%;
-      min-width: 1180px;
-      font-size: 13px;
-    }
-
-    th,
-    td {
-      padding: 8px 10px;
-      border-right: 1px solid var(--line-soft);
-      border-bottom: 1px solid var(--line-soft);
-      text-align: left;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-
-    th {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      background: #e8edf3;
-      color: #293548;
-      font-size: 12px;
-      text-transform: uppercase;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    tr:nth-child(even) td {
-      background: #fbfcfd;
-    }
-
-    tr:hover td {
-      background: #eef8f6;
-    }
-
-    td.activity {
-      font-weight: 800;
-    }
-
-    td.driver-cell {
-      color: var(--brand-dark);
-      font-weight: 800;
-    }
-
-    td.time {
-      font-variant-numeric: tabular-nums;
-      font-weight: 700;
-    }
-
-    .source-row.advanced {
-      padding-top: 4px;
-      border-top: 1px solid var(--line-soft);
-    }
-
-    .service-code {
-      font-weight: 800;
-      color: #263544;
-    }
-
-    .tag {
-      display: inline-flex;
-      min-width: 30px;
-      justify-content: center;
-      border-radius: 999px;
-      padding: 3px 8px;
-      background: #e9f5f3;
-      color: var(--brand-dark);
-      font-weight: 800;
-    }
-
-    .tag.alt {
-      background: #fff4e5;
-      color: var(--accent);
-    }
-
-    .message {
-      padding: 22px;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .message.error {
-      color: var(--danger);
-      background: #fff2f0;
-    }
-
-    dialog {
-      width: min(440px, calc(100% - 28px));
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 0;
-      box-shadow: 0 24px 70px rgba(24, 33, 47, 0.22);
-    }
-
-    dialog::backdrop {
-      background: rgba(18, 52, 59, 0.42);
-    }
-
-    .modal-head,
-    .modal-body,
-    .modal-actions {
-      padding: 16px;
-    }
-
-    .modal-head {
-      border-bottom: 1px solid var(--line-soft);
-    }
-
-    .modal-head h2 {
-      margin: 0;
-      font-size: 20px;
-      letter-spacing: 0;
-    }
-
-    .modal-body {
-      display: grid;
-      gap: 12px;
-    }
-
-    .record-summary {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .record-summary strong {
-      color: var(--ink);
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      border-top: 1px solid var(--line-soft);
-    }
-
-    @media (max-width: 980px) {
-      .source-row,
-      .filters {
-        grid-template-columns: 1fr;
-      }
-
-      .statusbar {
-        align-items: stretch;
-      }
-
-      .pager {
-        width: 100%;
-        justify-content: space-between;
-      }
-
-      .table-wrap {
-        max-height: calc(100vh - 430px);
-      }
-    }
-  </style>
+        /* CARD DE JUSTIFICATIVA (MODAL) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-card {
+            background: white;
+            width: 750px;
+            max-width: 95%;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-card {
+            transform: translateY(0);
+        }
+        .modal-header {
+            background-color: #1a237e;
+            color: white;
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .modal-body {
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+        }
+        .modal-left {
+            flex: 1;
+            border-right: 1px solid #e0e0e0;
+            padding-right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .modal-left h4, .modal-right h4 {
+            margin: 0 0 5px 0;
+            color: #37474f;
+        }
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .radio-group input {
+            margin: 0;
+            cursor: pointer;
+        }
+        .input-outro-motivo {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #b0bec5;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+        .modal-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .textarea-justificativa {
+            width: 100%;
+            height: 160px;
+            padding: 10px;
+            border: 1px solid #b0bec5;
+            border-radius: 4px;
+            font-size: 13px;
+            resize: none;
+        }
+        .textarea-justificativa:focus {
+            border-color: #3f51b5;
+            outline: none;
+        }
+        .modal-footer {
+            background-color: #f5f5f5;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #e0e0e0;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <h1>Escala Wplex</h1>
-    <p class="subtitle">Busca por data, linha e tabela com edicao direta da matricula na planilha base.</p>
-  </header>
 
-  <main>
-    <section class="toolbar" aria-label="Controles da planilha">
-      <div class="filters">
-        <label>
-          Busca livre
-          <input id="searchInput" type="search" placeholder="Servico, carro, matricula, local...">
-        </label>
-        <label>
-          Data
-          <input id="dateFilter" type="date">
-        </label>
-        <label>
-          Linha
-          <select id="lineFilter"></select>
-        </label>
-        <label>
-          Tabela
-          <select id="tableFilter"></select>
-        </label>
-        <label>
-          Registros por pagina
-          <select id="pageSize">
-            <option>100</option>
-            <option selected>200</option>
-            <option>500</option>
-            <option>1000</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="source-row advanced" hidden>
-        <label>
-          URL do Web App
-          <input id="apiUrl" type="url" spellcheck="false" placeholder="Cole aqui a URL do Apps Script">
-        </label>
-        <label>
-          URL do CSV alternativo
-          <input id="csvUrl" type="url" spellcheck="false">
-        </label>
-        <button id="reloadBtn" type="button">Atualizar dados</button>
-        <button id="exportBtn" type="button" class="secondary">Exportar filtrado</button>
-      </div>
-    </section>
-
-    <section class="statusbar" aria-live="polite">
-      <div class="chips">
-        <span class="chip">Total: <strong id="totalRows">0</strong></span>
-        <span class="chip">Filtrado: <strong id="filteredRows">0</strong></span>
-        <span class="chip">Colunas: <strong id="totalColumns">0</strong></span>
-        <span class="chip">Salvamento: <strong id="saveMode">CSV</strong></span>
-      </div>
-      <div class="pager">
-        <button id="prevPage" type="button" class="secondary">Anterior</button>
-        <span id="pageInfo">Pagina 0 de 0</span>
-        <button id="nextPage" type="button" class="secondary">Proxima</button>
-      </div>
-    </section>
-
-    <section class="table-wrap">
-      <div id="message" class="message">Carregando dados...</div>
-      <table id="dataTable" hidden>
-        <thead></thead>
-        <tbody></tbody>
-      </table>
-    </section>
-  </main>
-
-  <dialog id="editDialog">
-    <form method="dialog">
-      <div class="modal-head">
-        <h2>Trocar matricula</h2>
-      </div>
-      <div class="modal-body">
-        <div class="record-summary">
-          <span>Linha: <strong id="editLine">-</strong></span>
-          <span>Carro: <strong id="editCar">-</strong></span>
-          <span>Servico: <strong id="editService">-</strong></span>
-          <span>Registro: <strong id="editRow">-</strong></span>
+<div class="container">
+    <h2>Painel Administrativo de Escala - TCCC</h2>
+    
+    <div class="search-panel">
+        <div class="search-group">
+            <label for="searchData">Filtrar por Data:</label>
+            <input type="date" id="searchData" class="search-input">
         </div>
-        <label>
-          Nova matricula
-          <input id="driverInput" type="text" inputmode="numeric" maxlength="20" autocomplete="off">
-        </label>
-        <div id="editMessage" class="message" hidden></div>
-      </div>
-      <div class="modal-actions">
-        <button id="cancelEdit" type="button" class="secondary">Cancelar</button>
-        <button id="saveDriver" type="button">Salvar matricula</button>
-      </div>
-    </form>
-  </dialog>
+        <div class="search-group">
+            <label for="searchMatricula">Por Matrícula (Motorista):</label>
+            <input type="text" id="searchMatricula" class="search-input" placeholder="Ex: 006801">
+        </div>
+        <div class="search-group">
+            <label for="searchLinha">Por Linha:</label>
+            <input type="text" id="searchLinha" class="search-input" placeholder="Ex: 010">
+        </div>
+        <button class="btn btn-search" onclick="buscarDoFirebaseFiltrado()">🔍 Buscar no Firebase</button>
+        <button class="btn btn-secondary" onclick="limparFiltrosDeBusca()">Ver Todos</button>
+    </div>
+    
+    <div class="actions-bar">
+        <div class="file-input-wrapper">
+            <button class="btn btn-secondary">📁 Importar Novo CSV</button>
+            <input type="file" id="csvFile" accept=".csv">
+        </div>
+        
+        <button class="btn btn-danger" onclick="deletarLinhasSelecionadas()">❌ Excluir Linhas Selecionadas</button>
+        <button class="btn btn-success" onclick="abrirModalJustificativa('todos')">💾 Salvar Modificações (${window.totalModificados || 0})</button>
+        
+        <span id="statsCounter" class="stats-badge">Registros visíveis: 0 / Total: 0</span>
+    </div>
 
-  <script>
-    const DEFAULT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS4odiCG64QbgNSla-P0oPnwUOpbmLg1GFdl07lCD-9rR8zd7FYllTnlJQm5115TxVtA9MjEh_O7RpU/pub?gid=1235803740&single=true&output=csv';
-    const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbzJ1fI2lHr_LeLFGFqV5Y8Ciwdgk4ZHYfXbXPYgovGzOO6IZN4LRQQTnh88RHArgtta/exec';
-    const DRIVER_COLUMN_INDEX = 26;
-    const VISIBLE_COLUMN_INDEXES = [2, 4, 6, 8, 9, 18, 19, 20, 21, 22, 23, 25, 26];
-    const DAY_TYPE_LABELS = {
-      U: 'Util',
-      S: 'Sabado',
-      D: 'Domingo',
-      F: 'Feriado'
+    <div class="progress-bar-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div id="status"></div>
+
+    <div class="table-responsive">
+        <table id="escalaTable">
+            <thead>
+                <tr>
+                    <th style="width: 40px;"><input type="checkbox" id="selectAll" onclick="toggleSelecionarTodos(this)"></th>
+                    <th style="width: 90px;">Ações</th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('empresa')">Empresa <span id="sort-empresa" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('filial')">Filial <span id="sort-filial" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('data')">Data (dd/mm/aaaa) <span id="sort-data" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('dia_tipo')">Tipo de Dia <span id="sort-dia_tipo" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('linha')">Linha <span id="sort-linha" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('tripulante')">Tripulante <span id="sort-tripulante" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('jornada_inicio')">Jornada Início <span id="sort-jornada_inicio" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('jornada_fim')">Jornada Fim <span id="sort-jornada_fim" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('local')">Local <span id="sort-local" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('veiculo')">Veículo <span id="sort-veiculo" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('matricula')">Matrícula <span id="sort-matricula" class="sort-icon">↕</span></th>
+                </tr>
+                <tr class="filter-row">
+                    <th></th>
+                    <th></th>
+                    <th><input type="text" class="filter-input" data-col="empresa" placeholder="Ex: TCCC..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="filial" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="data" placeholder="Filtrar data..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="dia_tipo" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="linha" placeholder="Ex: 010..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="tripulante" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="jornada_inicio" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="jornada_fim" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="local" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="veiculo" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="matricula" placeholder="Ex: 6801..." oninput="filtrarTabelaLocal()"></th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr>
+                    <td colspan="13" style="text-align: center; color: #757575; padding: 20px;">Utilize o painel acima para buscar os dados do Firebase ou Importe um novo arquivo CSV.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="justificativaModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">Justificativa de Alteração de Escala</div>
+        <div class="modal-body">
+            <div class="modal-left">
+                <h4>Selecione o Motivo:</h4>
+                <label class="radio-group">
+                    <input type="radio" name="motivoOpcao" value="Falta e ausencias" checked onchange="toggleOutroMotivoInput(false)"> Falta e ausências
+                </label>
+                <label class="radio-group">
+                    <input type="radio" name="motivoOpcao" value="Disciplina" onchange="toggleOutroMotivoInput(false)"> Disciplina
+                </label>
+                <label class="radio-group">
+                    <input type="radio" name="motivoOpcao" value="Troca de escala" onchange="toggleOutroMotivoInput(false)"> Troca de escala
+                </label>
+                <label class="radio-group">
+                    <input type="radio" name="motivoOpcao" value="Ajuste de horario" onchange="toggleOutroMotivoInput(false)"> Ajuste de horário
+                </label>
+                <label class="radio-group">
+                    <input type="radio" name="motivoOpcao" value="Outro" onchange="toggleOutroMotivoInput(true)"> Outro motivo...
+                </label>
+                <input type="text" id="customMotivoInput" class="input-outro-motivo" placeholder="Escreva o novo motivo aqui">
+            </div>
+            <div class="modal-right">
+                <h4>Explicação Detalhada:</h4>
+                <textarea id="textoJustificativa" class="textarea-justificativa" placeholder="Digite detalhadamente o motivo e observações desta alteração..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="fecharModalJustificativa()">Cancelar</button>
+            <button class="btn btn-primary" onclick="confirmarEEnviarSalvamento()">Confirmar e Salvar</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, writeBatch, query, where, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD-cwT1A_aI9GlVlja4qCdFnHPLOD7GXWU",
+        authDomain: "movimento-11cdd.firebaseapp.com",
+        projectId: "movimento-11cdd",
+        storageBucket: "movimento-11cdd.firebasestorage.app",
+        messagingSenderId: "882673376367",
+        appId: "1:882673376367:web:73fb34ac5933f1fc05019a"
     };
 
-    const COLUMN_NAMES = [
-      'Empresa',
-      'Filial',
-      'Servico',
-      'Tipo',
-      'Linha',
-      'Turno',
-      'Tabela',
-      'Campo 8',
-      'Inicio jornada',
-      'Fim jornada',
-      'Regime',
-      'Vira dia',
-      'Local base',
-      'Campo 14',
-      'Extra 1',
-      'Extra 2',
-      'Extra 3',
-      'Campo 18',
-      'Sentido',
-      'Sequencia',
-      'Atividade',
-      'Inicio',
-      'Fim',
-      'Local',
-      'Campo 25',
-      'Carro',
-      'Motorista',
-      'Campo 28',
-      'Campo 29',
-      'Campo 30'
-    ];
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-    const state = {
-      rows: [],
-      filtered: [],
-      columns: [],
-      page: 1,
-      sortColumn: null,
-      sortDirection: 'asc',
-      editingRow: null
-    };
+    let dadosEscala = [];
+    if (!window.idsParaDeletar) window.idsParaDeletar = [];
+    window.totalModificados = 0;
+    
+    let colunaOrdenadaAtual = '';
+    let ordemCrescente = true;
+    let escopoSalvamentoAtual = null; 
 
-    const els = {
-      csvUrl: document.querySelector('#csvUrl'),
-      apiUrl: document.querySelector('#apiUrl'),
-      reloadBtn: document.querySelector('#reloadBtn'),
-      exportBtn: document.querySelector('#exportBtn'),
-      searchInput: document.querySelector('#searchInput'),
-      dateFilter: document.querySelector('#dateFilter'),
-      lineFilter: document.querySelector('#lineFilter'),
-      tableFilter: document.querySelector('#tableFilter'),
-      pageSize: document.querySelector('#pageSize'),
-      totalRows: document.querySelector('#totalRows'),
-      filteredRows: document.querySelector('#filteredRows'),
-      totalColumns: document.querySelector('#totalColumns'),
-      saveMode: document.querySelector('#saveMode'),
-      pageInfo: document.querySelector('#pageInfo'),
-      prevPage: document.querySelector('#prevPage'),
-      nextPage: document.querySelector('#nextPage'),
-      message: document.querySelector('#message'),
-      table: document.querySelector('#dataTable'),
-      thead: document.querySelector('#dataTable thead'),
-      tbody: document.querySelector('#dataTable tbody'),
-      editDialog: document.querySelector('#editDialog'),
-      editLine: document.querySelector('#editLine'),
-      editCar: document.querySelector('#editCar'),
-      editService: document.querySelector('#editService'),
-      editRow: document.querySelector('#editRow'),
-      driverInput: document.querySelector('#driverInput'),
-      editMessage: document.querySelector('#editMessage'),
-      cancelEdit: document.querySelector('#cancelEdit'),
-      saveDriver: document.querySelector('#saveDriver')
-    };
-
-    els.csvUrl.value = DEFAULT_CSV_URL;
-    els.apiUrl.value = localStorage.getItem('wplexApiUrl') || DEFAULT_API_URL;
-
-    function parseRows(text) {
-      return text
-        .replace(/^\uFEFF/, '')
-        .split(/\r?\n/)
-        .map(line => line.trim())
-        .filter(Boolean)
-        .map((line, index) => ({
-          id: index + 1,
-          sheetRow: index + 1,
-          values: line.split(';').map(value => value.trim())
-        }));
+    function normalizarMatricula(valor) {
+        if (!valor) return "";
+        const num = parseInt(String(valor).replace(/\D/g, ''), 10);
+        return isNaN(num) ? "" : String(num);
     }
 
-    function normalizeRows(rows) {
-      const maxColumns = Math.max(...rows.map(row => row.values.length), COLUMN_NAMES.length);
-      state.columns = Array.from({ length: maxColumns }, (_, index) => COLUMN_NAMES[index] || `Campo ${index + 1}`);
-      return rows.map(row => ({
-        ...row,
-        values: Array.from({ length: maxColumns }, (_, index) => row.values[index] || ''),
-        service: parseService(row.values[2] || '')
-      }));
+    function formatarSeisCasas(valor) {
+        if (!valor) return "000000";
+        const numPuro = String(valor).replace(/\D/g, '');
+        return numPuro.padStart(6, '0');
     }
 
-    async function loadData() {
-      showMessage('Carregando dados...');
-      els.reloadBtn.disabled = true;
+    // Gerenciamento do Modal de Justificativas
+    window.abrirModalJustificativa = function(escopo) {
+        if (escopo === 'todos') {
+            const linhasModificadas = dadosEscala.filter(d => d._modificado);
+            if (linhasModificadas.length === 0 && window.idsParaDeletar.length === 0) {
+                mostrarStatus('Não há nenhuma modificação pendente ou exclusão para ser salva.', 'error');
+                return;
+            }
+        }
+        
+        escopoSalvamentoAtual = escopo;
+        
+        document.querySelector('input[name="motivoOpcao"][value="Falta e ausencias"]').checked = true;
+        document.getElementById('customMotivoInput').value = '';
+        document.getElementById('customMotivoInput').style.display = 'none';
+        document.getElementById('textoJustificativa').value = '';
+        
+        document.getElementById('justificativaModal').classList.add('active');
+    };
 
-      try {
-        const rows = hasApiUrl() ? await loadFromApi() : await loadFromCsv();
-        if (!rows.length) {
-          throw new Error('A base veio vazia.');
+    window.fecharModalJustificativa = function() {
+        document.getElementById('justificativaModal').classList.remove('active');
+        escopoSalvamentoAtual = null;
+    };
+
+    window.toggleOutroMotivoInput = function(mostrar) {
+        const input = document.getElementById('customMotivoInput');
+        input.style.display = mostrar ? 'block' : 'none';
+        if (mostrar) input.focus();
+    };
+
+    window.confirmarEEnviarSalvamento = function() {
+        const opcaoSelecionada = document.querySelector('input[name="motivoOpcao"]:checked').value;
+        let motivoFinal = opcaoSelecionada;
+
+        if (opcaoSelecionada === 'Outro') {
+            const customMotivo = document.getElementById('customMotivoInput').value.trim();
+            if (!customMotivo) {
+                alert('Por favor, descreva qual é o outro motivo no campo de texto.');
+                return;
+            }
+            motivoFinal = customMotivo;
         }
 
-        state.rows = normalizeRows(rows);
-        state.page = 1;
-        buildFilters();
-        applyFilters();
-      } catch (error) {
-        showMessage(
-          'Nao foi possivel carregar os dados. Se a base nao for publica, use a URL do Web App do Apps Script. Detalhe: ' + error.message,
-          true
-        );
-      } finally {
-        els.reloadBtn.disabled = false;
-      }
-    }
+        const explicacao = document.getElementById('textoJustificativa').value.trim();
+        if (!explicacao) {
+            alert('Por favor, insira uma explicação detalhada no campo da direita.');
+            return;
+        }
 
-    async function loadFromCsv() {
-      const response = await fetch(els.csvUrl.value.trim(), { cache: 'no-store' });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      return parseRows(await response.text());
-    }
-
-    async function loadFromApi() {
-      const response = await fetch(apiUrlWithParams({ action: 'read' }), { cache: 'no-store' });
-      const payload = await response.json();
-      if (!payload.ok) {
-        throw new Error(payload.error || 'Falha no Apps Script.');
-      }
-
-      localStorage.setItem('wplexApiUrl', cleanApiUrl());
-      return payload.rows.map((row, index) => ({
-        id: index + 1,
-        sheetRow: Number(row.sheetRow || index + 1),
-        values: row.values.map(value => String(value ?? '').trim())
-      }));
-    }
-
-    function buildFilters() {
-      fillSelect(els.lineFilter, state.rows.map(row => row.service.line || row.values[4]), 'Todas');
-      refreshTableFilter();
-    }
-
-    function fillSelect(select, values, allLabel) {
-      const current = select.value;
-      const options = [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true }));
-      select.innerHTML = `<option value="">${allLabel}</option>` + options.map(value => `<option>${escapeHtml(value)}</option>`).join('');
-      if (options.includes(current)) {
-        select.value = current;
-      }
-    }
-
-    function applyFilters() {
-      const term = normalizeText(els.searchInput.value);
-      const date = els.dateFilter.value;
-      const line = els.lineFilter.value;
-      const table = els.tableFilter.value;
-
-      state.filtered = state.rows.filter(row => {
-        if (date && row.service.dateIso !== date) return false;
-        if (line && (row.service.line || row.values[4]) !== line) return false;
-        if (table && row.values[6] !== table) return false;
-        if (term && !normalizeText(row.values.join(' ') + ' ' + row.service.dateBr + ' ' + row.service.dayType).includes(term)) return false;
-        return true;
-      });
-
-      sortRows();
-      state.page = Math.min(state.page, totalPages()) || 1;
-      render();
-    }
-
-    function refreshTableFilter() {
-      const current = els.tableFilter.value;
-      const date = els.dateFilter.value;
-      const line = els.lineFilter.value;
-      const rowsForTable = state.rows.filter(row => {
-        if (date && row.service.dateIso !== date) return false;
-        if (line && (row.service.line || row.values[4]) !== line) return false;
-        return true;
-      });
-
-      fillSelect(els.tableFilter, rowsForTable.map(row => row.values[6]), 'Todas');
-      if (current && [...els.tableFilter.options].some(option => option.value === current)) {
-        els.tableFilter.value = current;
-      }
-    }
-
-    function sortRows() {
-      if (state.sortColumn === null) return;
-      const multiplier = state.sortDirection === 'asc' ? 1 : -1;
-      state.filtered.sort((a, b) => {
-        const av = getSortValue(a, state.sortColumn);
-        const bv = getSortValue(b, state.sortColumn);
-        return av.localeCompare(bv, 'pt-BR', { numeric: true }) * multiplier;
-      });
-    }
-
-    function getSortValue(row, key) {
-      if (key === 'date') return row.service.dateIso || '';
-      if (key === 'dayType') return row.service.dayType || '';
-      return row.values[Number(key)] || '';
-    }
-
-    function render() {
-      els.totalRows.textContent = state.rows.length.toLocaleString('pt-BR');
-      els.filteredRows.textContent = state.filtered.length.toLocaleString('pt-BR');
-      els.totalColumns.textContent = getDisplayColumns().length.toLocaleString('pt-BR');
-      els.saveMode.textContent = hasApiUrl() ? 'Web App' : 'CSV';
-
-      if (!state.filtered.length) {
-        showMessage('Nenhum registro encontrado para os filtros atuais.');
-        return;
-      }
-
-      els.message.hidden = true;
-      els.table.hidden = false;
-      renderHeader();
-      renderBody();
-      renderPager();
-    }
-
-    function renderHeader() {
-      const headers = [
-        { label: '#', key: '' },
-        { label: 'Acao', key: '' },
-        ...getDisplayColumns()
-      ];
-      els.thead.innerHTML = `<tr>${headers.map(column => {
-        const marker = String(column.key) === String(state.sortColumn) ? (state.sortDirection === 'asc' ? ' ^' : ' v') : '';
-        return `<th data-column="${escapeHtml(column.key)}">${escapeHtml(column.label + marker)}</th>`;
-      }).join('')}</tr>`;
-    }
-
-    function renderBody() {
-      const pageSize = Number(els.pageSize.value);
-      const start = (state.page - 1) * pageSize;
-      const visibleRows = state.filtered.slice(start, start + pageSize);
-      const displayColumns = getDisplayColumns();
-
-      els.tbody.innerHTML = visibleRows.map(row => {
-        const cells = displayColumns.map(column => {
-          const value = column.get(row);
-          const classes = [
-            column.time ? 'time' : '',
-            column.index === 20 ? 'activity' : '',
-            column.index === DRIVER_COLUMN_INDEX ? 'driver-cell' : ''
-          ].filter(Boolean).join(' ');
-          return `<td class="${classes}">${formatCell(value, column)}</td>`;
-        }).join('');
-        return `<tr><td>${row.id}</td><td><button class="small secondary" type="button" data-edit-row="${row.id}">Editar</button></td>${cells}</tr>`;
-      }).join('');
-    }
-
-    function getDisplayColumns() {
-      const baseColumns = VISIBLE_COLUMN_INDEXES.map(index => ({
-        key: String(index),
-        index,
-        label: index === DRIVER_COLUMN_INDEX ? 'Matricula' : state.columns[index],
-        time: [8, 9, 21, 22].includes(index),
-        get: row => row.values[index] || ''
-      }));
-
-      return [
-        baseColumns[0],
-        { key: 'date', label: 'Data', time: true, get: row => row.service.dateBr || '' },
-        { key: 'dayType', label: 'Dia', get: row => row.service.dayType || '' },
-        ...baseColumns.slice(1)
-      ];
-    }
-
-    function renderPager() {
-      const pages = totalPages();
-      els.pageInfo.textContent = `Pagina ${state.page} de ${pages}`;
-      els.prevPage.disabled = state.page <= 1;
-      els.nextPage.disabled = state.page >= pages;
-    }
-
-    function totalPages() {
-      return Math.max(1, Math.ceil(state.filtered.length / Number(els.pageSize.value)));
-    }
-
-    function formatCell(value, column) {
-      const safe = escapeHtml(value);
-      if (column.index === 2 && value) {
-        return `<span class="service-code">${safe}</span>`;
-      }
-      if (column.index === 18 && value) {
-        return `<span class="tag ${value === 'V' ? 'alt' : ''}">${safe}</span>`;
-      }
-      return safe;
-    }
-
-    function showMessage(text, isError = false) {
-      els.table.hidden = true;
-      els.message.hidden = false;
-      els.message.className = isError ? 'message error' : 'message';
-      els.message.textContent = text;
-      els.saveMode.textContent = hasApiUrl() ? 'Web App' : 'CSV';
-      renderPager();
-    }
-
-    function openEdit(rowId) {
-      const row = state.rows.find(item => item.id === Number(rowId));
-      if (!row) return;
-
-      state.editingRow = row;
-      els.editLine.textContent = row.service.line || row.values[4] || '-';
-      els.editCar.textContent = row.values[25] || '-';
-      els.editService.textContent = row.service.dateBr ? `${row.values[2]} - ${row.service.dateBr}` : row.values[2] || '-';
-      els.editRow.textContent = row.sheetRow || row.id;
-      els.driverInput.value = row.values[DRIVER_COLUMN_INDEX] || '';
-      els.editMessage.hidden = true;
-      els.editMessage.textContent = '';
-      els.editMessage.className = 'message';
-      els.editDialog.showModal();
-      els.driverInput.focus();
-      els.driverInput.select();
-    }
-
-    async function saveDriver() {
-      if (!state.editingRow) return;
-      if (!hasApiUrl()) {
-        showEditMessage('Para salvar na planilha base, cole primeiro a URL do Web App do Apps Script.', true);
-        return;
-      }
-
-      const driver = els.driverInput.value.trim();
-      if (!driver) {
-        showEditMessage('Informe a nova matricula.', true);
-        return;
-      }
-
-      els.saveDriver.disabled = true;
-      showEditMessage('Salvando...', false);
-
-      try {
-        const payload = {
-          action: 'updateDriver',
-          sheetRow: state.editingRow.sheetRow,
-          driver
+        const dadosJustificativa = {
+            motivo: motivoFinal,
+            detalhes: explicacao,
+            usuario_data: new Date().toISOString()
         };
-        const response = await fetch(cleanApiUrl(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
+
+        fecharModalJustificativa();
+
+        if (escopoSalvamentoAtual === 'todos') {
+            executarSalvarTudoFirebase(dadosJustificativa);
+        } else {
+            // escopoSalvamentoAtual agora guarda o uid estável do registro
+            executarSalvarLinhaUnica(escopoSalvamentoAtual, dadosJustificativa);
+        }
+    };
+
+    // Importar Novo CSV localmente
+    document.getElementById('csvFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        mostrarStatus('Processando CSV...', 'info');
+        const reader = new FileReader();
+        
+        reader.onload = function(evt) {
+            try {
+                const linhas = evt.target.result.split(/\r?\n/);
+                const jornadasUnicas = new Map();
+
+                linhas.forEach(linha => {
+                    if (!linha.trim()) return;
+                    const valores = linha.split(';');
+                    
+                    if (valores[0] === "Empresa" || valores.length < 27) return;
+
+                    const codigo = valores[2] || "";
+                    const matriculaPura = normalizarMatricula(valores[26]);
+                    const chaveUnica = `${codigo}_${matriculaPura}`;
+
+                    if (!jornadasUnicas.has(chaveUnica)) {
+                        jornadasUnicas.set(chaveUnica, {
+                            id: null,
+                            uid: 'csv_' + Math.random().toString(36).substr(2, 9), // ID estável em memória
+                            empresa: valores[0] || "",
+                            filial: valores[1] || "",
+                            data: extrairDataCodigo(codigo) || "",
+                            dia_tipo: converterTipoDia(valores[3]),
+                            linha: valores[4] ? String(valores[4]).trim() : "",
+                            tripulante: valores[6] || "",
+                            jornada_inicio: valores[8] || "",
+                            jornada_fim: valores[9] || "",
+                            local: valores[12] || "",
+                            veiculo: valores[25] || "",
+                            matricula: matriculaPura,
+                            _modificado: true 
+                        });
+                    }
+                });
+
+                dadosEscala = Array.from(jornadasUnicas.values());
+                atualizarContadorModificados();
+                resetaIconesOrdenacao();
+                renderizarTabela();
+                mostrarStatus(`CSV processado! ${dadosEscala.length} jornadas carregadas na tela.`, 'success');
+            } catch (err) {
+                mostrarStatus('Erro ao ler CSV: ' + err.message, 'error');
+            }
+        };
+        reader.readAsText(file, "UTF-8");
+    });
+
+    // Buscar no Firebase
+    window.buscarDoFirebaseFiltrado = async function() {
+        mostrarStatus('Buscando dados no Firebase...', 'info');
+        
+        const inputData = document.getElementById('searchData').value;
+        const inputMatricula = document.getElementById('searchMatricula').value.trim();
+        const inputLinha = document.getElementById('searchLinha').value.trim();
+
+        try {
+            let referenColecao = collection(db, "escalas_tccc");
+            let restricoes = [];
+
+            if (inputData) {
+                const [ano, mes, dia] = inputData.split('-');
+                const dataFormatada = `${dia}/${mes}/${ano}`;
+                restricoes.push(where("data", "==", dataFormatada));
+            }
+
+            if (inputMatricula) {
+                const matriculaBusca = formatarSeisCasas(inputMatricula);
+                restricoes.push(where("matricula", "==", matriculaBusca));
+            }
+
+            if (inputLinha) {
+                restricoes.push(where("linha", "==", inputLinha));
+            }
+
+            const q = query(referenColecao, ...restricoes);
+            const querySnapshot = await getDocs(q);
+            
+            dadosEscala = [];
+            window.idsParaDeletar = []; 
+            
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                dadosEscala.push({
+                    id: doc.id,
+                    uid: doc.id, // ID estável vindo do banco
+                    empresa: data.empresa || "",
+                    filial: data.filial || "",
+                    data: data.data || "",
+                    dia_tipo: data.dia_tipo || "",
+                    linha: data.linha || "",
+                    tripulante: data.tripulante || "",
+                    jornada_inicio: data.jornada_inicio || "",
+                    jornada_fim: data.jornada_fim || "",
+                    local: data.local || "",
+                    veiculo: data.veiculo || "",
+                    matricula: normalizarMatricula(data.matricula),
+                    _modificado: false 
+                });
+            });
+
+            atualizarContadorModificados();
+            resetaIconesOrdenacao();
+            renderizarTabela();
+            mostrarStatus(`Sucesso! ${dadosEscala.length} registros encontrados.`, 'success');
+        } catch (err) {
+            mostrarStatus('Erro ao realizar busca: ' + err.message, 'error');
+        }
+    };
+
+    window.limparFiltrosDeBusca = function() {
+        document.getElementById('searchData').value = '';
+        document.getElementById('searchMatricula').value = '';
+        document.getElementById('searchLinha').value = '';
+        buscarDoFirebaseFiltrado();
+    };
+
+    // Ordenação
+    window.ordenarTabelaPorColuna = function(coluna) {
+        if (dadosEscala.length === 0) return;
+
+        if (colunaOrdenadaAtual === coluna) {
+            ordemCrescente = !ordemCrescente;
+        } else {
+            colunaOrdenadaAtual = coluna;
+            ordemCrescente = true;
+        }
+
+        dadosEscala.sort((a, b) => {
+            let valA = String(a[coluna] || '').toLowerCase().trim();
+            let valB = String(b[coluna] || '').toLowerCase().trim();
+
+            if (coluna === 'matricula') {
+                let numA = parseInt(valA, 10) || 0;
+                let numB = parseInt(valB, 10) || 0;
+                return ordemCrescente ? numA - numB : numB - numA;
+            }
+
+            if (coluna === 'data') {
+                const partsA = valA.split('/');
+                const partsB = valB.split('/');
+                if(partsA.length === 3 && partsB.length === 3) {
+                    valA = `${partsA[2]}${partsA[1]}${partsA[0]}`;
+                    valB = `${partsB[2]}${partsB[1]}${partsB[0]}`;
+                }
+            }
+
+            if (valA < valB) return ordemCrescente ? -1 : 1;
+            if (valA > valB) return ordemCrescente ? 1 : -1;
+            return 0;
         });
-        const result = await response.json();
-        if (!result.ok) {
-          throw new Error(result.error || 'Falha ao salvar.');
+
+        resetaIconesOrdenacao();
+        const icone = document.getElementById(`sort-${coluna}`);
+        if (icone) {
+            icone.innerText = ordemCrescente ? '▲' : '▼';
+            icone.style.color = '#fff';
         }
 
-        state.editingRow.values[DRIVER_COLUMN_INDEX] = driver;
-        applyFilters();
-        showEditMessage('Matricula salva na planilha.', false);
-        setTimeout(() => els.editDialog.close(), 450);
-      } catch (error) {
-        showEditMessage('Nao foi possivel salvar. Detalhe: ' + error.message, true);
-      } finally {
-        els.saveDriver.disabled = false;
-      }
+        renderizarTabela();
+    };
+
+    function resetaIconesOrdenacao() {
+        document.querySelectorAll('.sort-icon').forEach(icon => {
+            icon.innerText = '↕';
+            icon.style.color = '#b0bec5';
+        });
     }
 
-    function showEditMessage(text, isError) {
-      els.editMessage.hidden = false;
-      els.editMessage.className = isError ? 'message error' : 'message';
-      els.editMessage.textContent = text;
+    // Renderização da tabela baseada em UID estável
+    window.renderizarTabela = function() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        if (dadosEscala.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="13" style="text-align: center; color: #757575; padding: 20px;">Nenhum registro encontrado para essa pesquisa.</td></tr>`;
+            atualizarContador(0, 0);
+            return;
+        }
+
+        const filtros = {};
+        document.querySelectorAll('.filter-input').forEach(input => {
+            const valorInput = input.value.toLowerCase().trim();
+            if (valorInput) {
+                filtros[input.dataset.col] = valorInput.split(',').map(item => item.trim()).filter(item => item !== '');
+            }
+        });
+
+        let visiveis = 0;
+
+        dadosEscala.forEach((item) => {
+            let passaFiltro = true;
+            
+            for (const col in filtros) {
+                if (filtros[col] && filtros[col].length > 0) {
+                    const valorCelula = String(item[col] || '').toLowerCase();
+                    const bateuAlgumItem = filtros[col].some(termoProcurado => valorCelula.includes(termoProcurado));
+                    
+                    if (!bateuAlgumItem) {
+                        passaFiltro = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!passaFiltro) return;
+            visiveis++;
+
+            const tr = document.createElement('tr');
+            tr.id = `tr-row-${item.uid}`;
+            
+            if (item._modificado) {
+                tr.classList.add('row-modified');
+            }
+
+            tr.innerHTML = `
+                <td><input type="checkbox" class="row-select" value="${item.uid}"></td>
+                <td>
+                    <button id="btn-save-${item.uid}" class="btn-row-save" onclick="abrirModalJustificativa('${item.uid}')" style="display: ${item._modificado ? 'inline-block' : 'none'};">💾 Salvar</button>
+                </td>
+                <td><input type="text" class="cell-editable" value="${item.empresa}" oninput="marcarLinhaComoModificada('${item.uid}', 'empresa', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.filial}" oninput="marcarLinhaComoModificada('${item.uid}', 'filial', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.data}" oninput="marcarLinhaComoModificada('${item.uid}', 'data', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.dia_tipo}" oninput="marcarLinhaComoModificada('${item.uid}', 'dia_tipo', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.linha}" oninput="marcarLinhaComoModificada('${item.uid}', 'linha', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.tripulante}" oninput="marcarLinhaComoModificada('${item.uid}', 'tripulante', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.jornada_inicio}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_inicio', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.jornada_fim}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_fim', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.local}" oninput="marcarLinhaComoModificada('${item.uid}', 'local', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.veiculo}" oninput="marcarLinhaComoModificada('${item.uid}', 'veiculo', this.value)"></td>
+                <td><input type="text" class="cell-editable" value="${item.matricula}" oninput="marcarLinhaComoModificadaMatricula('${item.uid}', this.value)"></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        atualizarContador(visiveis, dadosEscala.length);
+    };
+
+    window.marcarLinhaComoModificada = function(uid, campo, valor) {
+        const item = dadosEscala.find(d => d.uid === uid);
+        if (item) {
+            item[campo] = valor;
+            
+            if (!item._modificado) {
+                item._modificado = true;
+                const elementoTr = document.getElementById(`tr-row-${uid}`);
+                const elementoBtn = document.getElementById(`btn-save-${uid}`);
+                if (elementoTr) elementoTr.classList.add('row-modified');
+                if (elementoBtn) elementoBtn.style.display = 'inline-block';
+                
+                atualizarContadorModificados();
+            }
+        }
+    };
+
+    window.marcarLinhaComoModificadaMatricula = function(uid, valor) {
+        const item = dadosEscala.find(d => d.uid === uid);
+        if (item) {
+            item.matricula = normalizarMatricula(valor);
+            
+            if (!item._modificado) {
+                item._modificado = true;
+                const elementoTr = document.getElementById(`tr-row-${uid}`);
+                const elementoBtn = document.getElementById(`btn-save-${uid}`);
+                if (elementoTr) elementoTr.classList.add('row-modified');
+                if (elementoBtn) elementoBtn.style.display = 'inline-block';
+                
+                atualizarContadorModificados();
+            }
+        }
+    };
+
+    function atualizarContadorModificados() {
+        window.totalModificados = dadosEscala.filter(d => d._modificado).length;
+        const btnTudo = document.querySelector('button[onclick="abrirModalJustificativa(\'todos\')"]');
+        if (btnTudo) {
+            btnTudo.innerText = `💾 Salvar Modificações (${window.totalModificados})`;
+        }
     }
 
-    function exportFiltered() {
-      if (!state.filtered.length) return;
-      const displayColumns = getDisplayColumns();
-      const lines = [
-        displayColumns.map(column => column.label).join(';'),
-        ...state.filtered.map(row => displayColumns.map(column => csvEscape(column.get(row))).join(';'))
-      ];
-      const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'planilha-filtrada.csv';
-      link.click();
-      URL.revokeObjectURL(url);
+    // RESOLVIDO: Busca estável por UID garante a limpeza visual e reset da linha
+    async function executarSalvarLinhaUnica(uid, dadosJustificativa) {
+        const dados = dadosEscala.find(d => d.uid === uid);
+        if (!dados || !dados._modificado) return;
+
+        const elementoBtn = document.getElementById(`btn-save-${uid}`);
+        if (elementoBtn) {
+            elementoBtn.disabled = true;
+            elementoBtn.innerText = "Aguarde...";
+        }
+
+        try {
+            let docRef;
+            const matriculaFormatadaSeisCasas = formatarSeisCasas(dados.matricula);
+
+            const dadosParaSalvar = {
+                empresa: dados.empresa,
+                filial: dados.filial,
+                data: dados.data,
+                dia_tipo: dados.dia_tipo,
+                linha: dados.linha,
+                tripulante: dados.tripulante,
+                jornada_inicio: dados.jornada_inicio,
+                jornada_fim: dados.jornada_fim,
+                local: dados.local,
+                veiculo: dados.veiculo,
+                matricula: matriculaFormatadaSeisCasas,
+                atualizado_em: new Date().toISOString(),
+                justificativa: dadosJustificativa 
+            };
+
+            if (dados.id) {
+                docRef = doc(db, "escalas_tccc", dados.id);
+                await setDoc(docRef, dadosParaSalvar, { merge: true });
+            } else {
+                docRef = doc(collection(db, "escalas_tccc"));
+                await setDoc(docRef, dadosParaSalvar);
+                dados.id = docRef.id;
+                dados.uid = docRef.id; // Vincula o ID definitivo da Firebase
+            }
+
+            dados._modificado = false;
+            atualizarContadorModificados();
+            
+            // Redesencadeia a renderização limpa para atualizar IDs e sumir com botões e cores amarelas
+            renderizarTabela();
+            mostrarStatus(`Registro (Matrícula ${matriculaFormatadaSeisCasas}) salvo individualmente com sucesso!`, 'success');
+        } catch (err) {
+            mostrarStatus(`Erro ao salvar linha: ${err.message}`, 'error');
+            if (elementoBtn) {
+                elementoBtn.disabled = false;
+                elementoBtn.innerText = "💾 Salvar";
+            }
+        }
     }
 
-    function csvEscape(value) {
-      const text = String(value ?? '');
-      return /[;"\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+    window.filtrarTabelaLocal = function() {
+        renderizarTabela();
+    };
+
+    // Marcar exclusão
+    window.deletarLinhasSelecionadas = function() {
+        const checkboxes = document.querySelectorAll('.row-select:checked');
+        if (checkboxes.length === 0) {
+            alert('Selecione ao menos um item marcando a caixinha.');
+            return;
+        }
+
+        if (!confirm(`Deseja mesmo remover as ${checkboxes.length} linhas da exibição? Clique em "Salvar Modificações" na sequência para efetivar no banco.`)) {
+            return;
+        }
+
+        // Mapeia uids estáveis para exclusão coerente
+        const uidsParaRemover = Array.from(checkboxes).map(cb => cb.value);
+
+        uidsParaRemover.forEach(uid => {
+            const idx = dadosEscala.findIndex(d => d.uid === uid);
+            if (idx !== -1) {
+                const item = dadosEscala[idx];
+                if (item.id) {
+                    window.idsParaDeletar.push(item.id);
+                }
+                dadosEscala.splice(idx, 1);
+            }
+        });
+
+        document.getElementById('selectAll').checked = false;
+        atualizarContadorModificados();
+        renderizarTabela();
+        mostrarStatus(`${uidsParaRemover.length} itens prontos para descarte no Firebase. Clique em Salvar Modificações para concluir.`, 'info');
+    };
+
+    // Salvar Tudo em Lote Otimizado
+    async function executarSalvarTudoFirebase(dadosJustificativa) {
+        const linhasModificadas = dadosEscala.filter(d => d._modificado);
+
+        const btn = document.querySelector('button[onclick="abrirModalJustificativa(\'todos\')"]');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        
+        btn.disabled = true;
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '15%';
+        mostrarStatus(`Gravando modificações com justificativa no Firebase...`, 'info');
+
+        try {
+            if (window.idsParaDeletar.length > 0) {
+                const tamanhoLoteDel = 400;
+                for (let i = 0; i < window.idsParaDeletar.length; i += tamanhoLoteDel) {
+                    const batchDel = writeBatch(db);
+                    const pedacoDel = window.idsParaDeletar.slice(i, i + tamanhoLoteDel);
+                    pedacoDel.forEach(idDoc => {
+                        batchDel.delete(doc(db, "escalas_tccc", idDoc));
+                    });
+                    await batchDel.commit();
+                }
+                window.idsParaDeletar = [];
+            }
+
+            const tamanhoLote = 400;
+            let totalSalvo = 0;
+
+            if (linhasModificadas.length > 0) {
+                for (let i = 0; i < linhasModificadas.length; i += tamanhoLote) {
+                    const batch = writeBatch(db);
+                    const pedaco = linhasModificadas.slice(i, i + tamanhoLote);
+
+                    pedaco.forEach((dados) => {
+                        let docRef;
+                        const matriculaFormatadaSeisCasas = formatarSeisCasas(dados.matricula);
+
+                        const dadosParaSalvar = {
+                            empresa: dados.empresa,
+                            filial: dados.filial,
+                            data: dados.data,
+                            dia_tipo: dados.dia_tipo,
+                            linha: dados.linha,
+                            tripulante: dados.tripulante,
+                            jornada_inicio: dados.jornada_inicio,
+                            jornada_fim: dados.jornada_fim,
+                            local: dados.local,
+                            veiculo: dados.veiculo,
+                            matricula: matriculaFormatadaSeisCasas,
+                            atualizado_em: new Date().toISOString(),
+                            justificativa: dadosJustificativa 
+                        };
+
+                        if (dados.id) {
+                            docRef = doc(db, "escalas_tccc", dados.id);
+                            batch.set(docRef, dadosParaSalvar, { merge: true });
+                        } else {
+                            docRef = doc(collection(db, "escalas_tccc"));
+                            batch.set(docRef, dadosParaSalvar);
+                            dados.id = docRef.id;
+                            dados.uid = docRef.id;
+                        }
+                        
+                        dados._modificado = false;
+                    });
+
+                    await batch.commit();
+                    totalSalvo += pedaco.length;
+                    progressBar.style.width = Math.round((totalSalvo / linhasModificadas.length) * 100) + '%';
+                }
+            }
+
+            atualizarContadorModificados();
+            renderizarTabela(); 
+            mostrarStatus('Operação inteligente concluída! Alterações documentadas com sucesso.', 'success');
+        } catch (err) {
+            mostrarStatus('Erro ao sincronizar dados: ' + err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            setTimeout(() => { progressContainer.style.display = 'none'; }, 2000);
+        }
     }
 
-    function hasApiUrl() {
-      return cleanApiUrl().length > 0;
+    window.toggleSelecionarTodos = function(masterCanvas) {
+        const checkboxes = document.querySelectorAll('.row-select');
+        checkboxes.forEach(cb => {
+            if (cb.closest('tr').style.display !== 'none') {
+                cb.checked = masterCanvas.checked;
+            }
+        });
+    };
+
+    function converterTipoDia(diaS) {
+        if (diaS === '1') return "Dia Útil";
+        if (diaS === '2') return "Sábado";
+        if (diaS === '3') return "Dom/Fer";
+        return diaS;
     }
 
-    function cleanApiUrl() {
-      return els.apiUrl.value.trim();
+    function extrairDataCodigo(codigo) {
+        if (!codigo) return null;
+        const match = codigo.match(/\d{6}$/);
+        if (match) {
+            const strData = match[0];
+            const dia = strData.substring(0, 2);
+            const mes = strData.substring(2, 4);
+            const ano = "20" + strData.substring(4, 6);
+            return `${dia}/${mes}/${ano}`;
+        }
+        return null;
     }
 
-    function apiUrlWithParams(params) {
-      const url = new URL(cleanApiUrl());
-      Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
-      return url.toString();
+    function atualizarContador(visiveis, total) {
+        document.getElementById('statsCounter').innerText = `Registros visíveis: ${visiveis} / Total: ${total}`;
     }
 
-    function parseService(service) {
-      const text = String(service || '').trim();
-      const match = text.match(/^(.+?)([A-Za-z])(\d{6})$/);
-      if (!match) {
-        return {
-          line: '',
-          dayCode: '',
-          dayType: '',
-          dateIso: '',
-          dateBr: ''
-        };
-      }
-
-      const [, line, dayCodeRaw, dateRaw] = match;
-      const dayCode = dayCodeRaw.toUpperCase();
-      const day = dateRaw.slice(0, 2);
-      const month = dateRaw.slice(2, 4);
-      const year = '20' + dateRaw.slice(4, 6);
-
-      return {
-        line,
-        dayCode,
-        dayType: DAY_TYPE_LABELS[dayCode] || dayCode,
-        dateIso: `${year}-${month}-${day}`,
-        dateBr: `${day}/${month}/${year}`
-      };
+    function mostrarStatus(m, t) {
+        const d = document.getElementById('status');
+        d.className = t; d.style.display = 'block'; d.innerText = m;
     }
-
-    function normalizeText(value) {
-      return String(value)
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase();
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-    }
-
-    els.reloadBtn.addEventListener('click', loadData);
-    els.exportBtn.addEventListener('click', exportFiltered);
-    els.apiUrl.addEventListener('change', () => {
-      localStorage.setItem('wplexApiUrl', cleanApiUrl());
-      els.saveMode.textContent = hasApiUrl() ? 'Web App' : 'CSV';
-    });
-    els.searchInput.addEventListener('input', () => {
-      state.page = 1;
-      applyFilters();
-    });
-    els.dateFilter.addEventListener('change', () => {
-      state.page = 1;
-      refreshTableFilter();
-      applyFilters();
-    });
-
-    els.lineFilter.addEventListener('change', () => {
-      state.page = 1;
-      refreshTableFilter();
-      applyFilters();
-    });
-
-    [els.tableFilter, els.pageSize].forEach(element => {
-      element.addEventListener('change', () => {
-        state.page = 1;
-        applyFilters();
-      });
-    });
-
-    els.prevPage.addEventListener('click', () => {
-      state.page = Math.max(1, state.page - 1);
-      render();
-    });
-
-    els.nextPage.addEventListener('click', () => {
-      state.page = Math.min(totalPages(), state.page + 1);
-      render();
-    });
-
-    els.thead.addEventListener('click', event => {
-      const th = event.target.closest('th');
-      if (!th) return;
-      const column = th.dataset.column;
-      if (!column) return;
-      if (state.sortColumn === column) {
-        state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
-      } else {
-        state.sortColumn = column;
-        state.sortDirection = 'asc';
-      }
-      applyFilters();
-    });
-
-    els.tbody.addEventListener('click', event => {
-      const button = event.target.closest('[data-edit-row]');
-      if (!button) return;
-      openEdit(button.dataset.editRow);
-    });
-
-    els.cancelEdit.addEventListener('click', () => els.editDialog.close());
-    els.saveDriver.addEventListener('click', saveDriver);
-    els.driverInput.addEventListener('keydown', event => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        saveDriver();
-      }
-    });
-
-    loadData();
-  </script>
+</script>
 </body>
 </html>
