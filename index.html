@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Avançado de Escala - TCCC</title>
+    <title>Painel Advanced de Escala - TCCC</title>
     <style>
         * {
             box-sizing: border-box;
@@ -369,7 +369,7 @@
                     <th class="sortable-header" onclick="ordenarTabelaPorColuna('linha')">Linha <span id="sort-linha" class="sort-icon">↕</span></th>
                     <th class="sortable-header" onclick="ordenarTabelaPorColuna('tripulante')">Tripulante <span id="sort-tripulante" class="sort-icon">↕</span></th>
                     <th class="sortable-header" onclick="ordenarTabelaPorColuna('jornada_inicio')">Jornada Início <span id="sort-jornada_inicio" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('jornada_fim')">Jornada Fim <span id="sort-jornada_fim" class="sort-icon">↕</span></th>
+                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('jornada_fim)')">Jornada Fim <span id="sort-jornada_fim" class="sort-icon">↕</span></th>
                     <th class="sortable-header" onclick="ordenarTabelaPorColuna('local')">Local <span id="sort-local" class="sort-icon">↕</span></th>
                     <th class="sortable-header" onclick="ordenarTabelaPorColuna('veiculo')">Veículo <span id="sort-veiculo" class="sort-icon">↕</span></th>
                     <th class="sortable-header" onclick="ordenarTabelaPorColuna('matricula')">Matrícula <span id="sort-matricula" class="sort-icon">↕</span></th>
@@ -529,6 +529,7 @@
         if (escopoSalvamentoAtual === 'todos') {
             executarSalvarTudoFirebase(dadosJustificativa);
         } else {
+            // Agora passa o uid definitivo e estável para salvar
             executarSalvarLinhaUnica(escopoSalvamentoAtual, dadosJustificativa);
         }
     };
@@ -623,7 +624,7 @@
                 const data = doc.data();
                 dadosEscala.push({
                     id: doc.id,
-                    uid: doc.id, 
+                    uid: String(doc.id), // Força string para evitar conflito de tipos
                     empresa: data.empresa || "",
                     filial: data.filial || "",
                     data: data.data || "",
@@ -726,7 +727,7 @@
 
         let visiveis = 0;
 
-        dadosEscala.forEach((item) => {
+        dadosEscala.forEach((item, index) => {
             let passaFiltro = true;
             
             for (const col in filtros) {
@@ -751,19 +752,20 @@
                 tr.classList.add('row-modified');
             }
 
+            // CORREÇÃO: Passamos o índice numérico real da memória (index) para evitar erros de busca por string de UID
             tr.innerHTML = `
                 <td><input type="checkbox" class="row-select" value="${item.uid}"></td>
-                <td><input type="text" class="cell-editable" value="${item.empresa}" oninput="marcarLinhaComoModificada('${item.uid}', 'empresa', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'empresa')"></td>
-                <td><input type="text" class="cell-editable" value="${item.filial}" oninput="marcarLinhaComoModificada('${item.uid}', 'filial', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'filial')"></td>
-                <td><input type="text" class="cell-editable" value="${item.data}" oninput="marcarLinhaComoModificada('${item.uid}', 'data', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'data')"></td>
-                <td><input type="text" class="cell-editable" value="${item.dia_tipo}" oninput="marcarLinhaComoModificada('${item.uid}', 'dia_tipo', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'dia_tipo')"></td>
-                <td><input type="text" class="cell-editable" value="${item.linha}" oninput="marcarLinhaComoModificada('${item.uid}', 'linha', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'linha')"></td>
-                <td><input type="text" class="cell-editable" value="${item.tripulante}" oninput="marcarLinhaComoModificada('${item.uid}', 'tripulante', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'tripulante')"></td>
-                <td><input type="text" class="cell-editable" value="${item.jornada_inicio}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_inicio', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'jornada_inicio')"></td>
-                <td><input type="text" class="cell-editable" value="${item.jornada_fim}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_fim', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'jornada_fim')"></td>
-                <td><input type="text" class="cell-editable" value="${item.local}" oninput="marcarLinhaComoModificada('${item.uid}', 'local', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'local')"></td>
-                <td><input type="text" class="cell-editable" value="${item.veiculo}" oninput="marcarLinhaComoModificada('${item.uid}', 'veiculo', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'veiculo')"></td>
-                <td><input type="text" class="cell-editable" value="${item.matricula}" oninput="marcarLinhaComoModificadaMatricula('${item.uid}', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'matricula')"></td>
+                <td><input type="text" class="cell-editable" value="${item.empresa}" oninput="marcarLinhaComoModificada(${index}, 'empresa', this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'empresa')"></td>
+                <td><input type="text" class="cell-editable" value="${item.filial}" oninput="marcarLinhaComoModificada(${index}, 'filial', this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'filial')"></td>
+                <td><input type="text" class="cell-editable" value="${item.data}" oninput="marcarLinhaComoModificada(${index}, 'data', this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'data')"></td>
+                <td><input type="text" class="cell-editable" value="${item.dia_tipo}" oninput="marcarLinhaComoModificada(${index}, 'dia_tipo', this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'dia_tipo')"></td>
+                <td><input type="text" class="cell-editable" value="${item.linha}" oninput="marcarLinhaComoModificada(${index}, 'linha', this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'linha')"></td>
+                <td><input type="text" class="cell-editable" value="${item.tripulante}" oninput="marcarLinhaComoModificada(${index}, 'tripulante', this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'tripulante')"></td>
+                <td><input type="text" class="cell-editable" value="${item.jornada_inicio}" oninput="marcarLinhaComoModificada(${index}, 'jornada_inicio', this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'jornada_inicio')"></td>
+                <td><input type="text" class="cell-editable" value="${item.jornada_fim}" oninput="marcarLinhaComoModificada(${index}, 'jornada_fim', this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'jornada_fim')"></td>
+                <td><input type="text" class="cell-editable" value="${item.local}" oninput="marcarLinhaComoModificada(${index}, 'local', this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'local')"></td>
+                <td><input type="text" class="cell-editable" value="${item.veiculo}" oninput="marcarLinhaComoModificada(${index}, 'veiculo', this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'veiculo')"></td>
+                <td><input type="text" class="cell-editable" value="${item.matricula}" oninput="marcarLinhaComoModificadaMatricula(${index}, this.value)" onkeydown="verificarTeclaEnter(event, ${index}, 'matricula')"></td>
             `;
             tbody.appendChild(tr);
         });
@@ -771,13 +773,12 @@
         atualizarContador(visiveis, dadosEscala.length);
     };
 
-    // SOLUÇÃO DO CONFLITO: O Enter agora salva o valor atual digitado antes de tentar abrir o card
-    window.verificarTeclaEnter = function(event, uid, campo) {
+    // CORREÇÃO: Usa o index direto da memória, eliminando a falha de busca por UID
+    window.verificarTeclaEnter = function(event, index, campo) {
         if (event.key === "Enter") {
             event.preventDefault(); 
-            const item = dadosEscala.find(d => d.uid === uid);
+            const item = dadosEscala[index];
             if (item) {
-                // Captura o valor exato escrito na tela no momento do Enter e força a sincronização
                 let valorAtual = event.target.value;
                 if (campo === 'matricula') {
                     item.matricula = normalizarMatricula(valorAtual);
@@ -785,36 +786,35 @@
                     item[campo] = valorAtual;
                 }
                 
-                item._modificado = true; // Garante o estado modificado síncronamente
+                item._modificado = true; 
 
                 if (document.activeElement) document.activeElement.blur();
-                window.abrirModalJustificativa(uid);
+                // Passa o index estável para o card saber quem salvar
+                window.abrirModalJustificativa(index);
             }
         }
     };
 
-    window.marcarLinhaComoModificada = function(uid, campo, valor) {
-        const item = dadosEscala.find(d => d.uid === uid);
+    window.marcarLinhaComoModificada = function(index, campo, valor) {
+        const item = dadosEscala[index];
         if (item) {
             item[campo] = valor;
-            
             if (!item._modificado) {
                 item._modificado = true;
-                const elementoTr = document.getElementById(`tr-row-${uid}`);
+                const elementoTr = document.getElementById(`tr-row-${item.uid}`);
                 if (elementoTr) elementoTr.classList.add('row-modified');
                 atualizarContadorModificados();
             }
         }
     };
 
-    window.marcarLinhaComoModificadaMatricula = function(uid, valor) {
-        const item = dadosEscala.find(d => d.uid === uid);
+    window.marcarLinhaComoModificadaMatricula = function(index, valor) {
+        const item = dadosEscala[index];
         if (item) {
             item.matricula = normalizarMatricula(valor);
-            
             if (!item._modificado) {
                 item._modificado = true;
-                const elementoTr = document.getElementById(`tr-row-${uid}`);
+                const elementoTr = document.getElementById(`tr-row-${item.uid}`);
                 if (elementoTr) elementoTr.classList.add('row-modified');
                 atualizarContadorModificados();
             }
@@ -829,10 +829,11 @@
         }
     }
 
-    async function executarSalvarLinhaUnica(uid, dadosJustificativa) {
-        const dados = dadosEscala.find(d => d.uid === uid);
+    // CORREÇÃO: Salva usando o index direto da array de dados, eliminando o erro de "Linha não encontrada"
+    async function executarSalvarLinhaUnica(index, dadosJustificativa) {
+        const dados = dadosEscala[index];
         if (!dados) {
-            alert("Erro crítico: Linha não encontrada no sistema.");
+            alert("Erro crítico: Linha inválida na memória.");
             return;
         }
 
@@ -863,7 +864,7 @@
                 docRef = doc(collection(db, "escalas_tccc"));
                 await setDoc(docRef, dadosParaSalvar);
                 dados.id = docRef.id;
-                dados.uid = docRef.id; 
+                dados.uid = String(docRef.id); 
             }
 
             dados._modificado = false;
@@ -871,10 +872,8 @@
             renderizarTabela();
             
             mostrarStatus(`Registro (Matrícula ${matriculaFormatadaSeisCasas}) salvo com sucesso via Enter!`, 'success');
-            alert(`Sucesso! A alteração da matrícula ${matriculaFormatadaSeisCasas} foi salva no Firebase e a cor amarela foi limpa.`);
         } catch (err) {
-            alert(`[BLOQUEIO FIREBASE]:\nMotivo técnico: ${err.message}\nCódigo: ${err.code}`);
-            mostrarStatus(`Erro ao salvar linha: ${err.message}`, 'error');
+            alert(`[BLOQUEIO FIREBASE]:\nMotivo técnico: ${err.message}`);
         }
     }
 
@@ -896,7 +895,7 @@
         const uidsParaRemover = Array.from(checkboxes).map(cb => cb.value);
 
         uidsParaRemover.forEach(uid => {
-            const idx = dadosEscala.findIndex(d => d.uid === uid);
+            const idx = dadosEscala.findIndex(d => String(d.uid) === String(uid));
             if (idx !== -1) {
                 const item = dadosEscala[idx];
                 if (item.id) {
@@ -909,7 +908,7 @@
         document.getElementById('selectAll').checked = false;
         atualizarContadorModificados();
         renderizarTabela();
-        mostrarStatus(`${uidsParaRemover.length} itens prontos para descarte no Firebase. Clique em Salvar Modificações para concluir.`, 'info');
+        mostrarStatus(`Itens removidos da tela. Clique em Salvar Modificações para concluir no banco.`, 'info');
     };
 
     async function executarSalvarTudoFirebase(dadosJustificativa) {
@@ -973,7 +972,7 @@
                             docRef = doc(collection(db, "escalas_tccc"));
                             batch.set(docRef, dadosParaSalvar);
                             dados.id = docRef.id;
-                            dados.uid = docRef.id;
+                            dados.uid = String(docRef.id);
                         }
                         
                         dados._modificado = false;
@@ -988,10 +987,8 @@
             atualizarContadorModificados();
             renderizarTabela(); 
             mostrarStatus('Operação inteligente concluída! Alterações documentadas com sucesso.', 'success');
-            alert(`Lote completo salvo! ${linesModificadas.length} linhas foram atualizadas na nuvem.`);
         } catch (err) {
             alert(`[BLOQUEIO FIREBASE LOTE]: Falha ao sincronizar o lote.\nMotivo técnico: ${err.message}`);
-            mostrarStatus('Erro ao sincronizar dados: ' + err.message, 'error');
         } finally {
             btn.disabled = false;
             setTimeout(() => { progressContainer.style.display = 'none'; }, 2000);
