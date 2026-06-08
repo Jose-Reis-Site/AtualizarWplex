@@ -753,17 +753,17 @@
 
             tr.innerHTML = `
                 <td><input type="checkbox" class="row-select" value="${item.uid}"></td>
-                <td><input type="text" class="cell-editable" value="${item.empresa}" oninput="marcarLinhaComoModificada('${item.uid}', 'empresa', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
-                <td><input type="text" class="cell-editable" value="${item.filial}" oninput="marcarLinhaComoModificada('${item.uid}', 'filial', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
-                <td><input type="text" class="cell-editable" value="${item.data}" oninput="marcarLinhaComoModificada('${item.uid}', 'data', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
-                <td><input type="text" class="cell-editable" value="${item.dia_tipo}" oninput="marcarLinhaComoModificada('${item.uid}', 'dia_tipo', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
-                <td><input type="text" class="cell-editable" value="${item.linha}" oninput="marcarLinhaComoModificada('${item.uid}', 'linha', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
-                <td><input type="text" class="cell-editable" value="${item.tripulante}" oninput="marcarLinhaComoModificada('${item.uid}', 'tripulante', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
-                <td><input type="text" class="cell-editable" value="${item.jornada_inicio}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_inicio', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
-                <td><input type="text" class="cell-editable" value="${item.jornada_fim}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_fim', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
-                <td><input type="text" class="cell-editable" value="${item.local}" oninput="marcarLinhaComoModificada('${item.uid}', 'local', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
-                <td><input type="text" class="cell-editable" value="${item.veiculo}" oninput="marcarLinhaComoModificada('${item.uid}', 'veiculo', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
-                <td><input type="text" class="cell-editable" value="${item.matricula}" oninput="marcarLinhaComoModificadaMatricula('${item.uid}', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.empresa}" oninput="marcarLinhaComoModificada('${item.uid}', 'empresa', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'empresa')"></td>
+                <td><input type="text" class="cell-editable" value="${item.filial}" oninput="marcarLinhaComoModificada('${item.uid}', 'filial', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'filial')"></td>
+                <td><input type="text" class="cell-editable" value="${item.data}" oninput="marcarLinhaComoModificada('${item.uid}', 'data', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'data')"></td>
+                <td><input type="text" class="cell-editable" value="${item.dia_tipo}" oninput="marcarLinhaComoModificada('${item.uid}', 'dia_tipo', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'dia_tipo')"></td>
+                <td><input type="text" class="cell-editable" value="${item.linha}" oninput="marcarLinhaComoModificada('${item.uid}', 'linha', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'linha')"></td>
+                <td><input type="text" class="cell-editable" value="${item.tripulante}" oninput="marcarLinhaComoModificada('${item.uid}', 'tripulante', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'tripulante')"></td>
+                <td><input type="text" class="cell-editable" value="${item.jornada_inicio}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_inicio', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'jornada_inicio')"></td>
+                <td><input type="text" class="cell-editable" value="${item.jornada_fim}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_fim', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'jornada_fim')"></td>
+                <td><input type="text" class="cell-editable" value="${item.local}" oninput="marcarLinhaComoModificada('${item.uid}', 'local', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'local')"></td>
+                <td><input type="text" class="cell-editable" value="${item.veiculo}" oninput="marcarLinhaComoModificada('${item.uid}', 'veiculo', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'veiculo')"></td>
+                <td><input type="text" class="cell-editable" value="${item.matricula}" oninput="marcarLinhaComoModificadaMatricula('${item.uid}', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'matricula')"></td>
             `;
             tbody.appendChild(tr);
         });
@@ -771,11 +771,22 @@
         atualizarContador(visiveis, dadosEscala.length);
     };
 
-    window.verificarTeclaEnter = function(event, uid) {
+    // SOLUÇÃO DO CONFLITO: O Enter agora salva o valor atual digitado antes de tentar abrir o card
+    window.verificarTeclaEnter = function(event, uid, campo) {
         if (event.key === "Enter") {
             event.preventDefault(); 
             const item = dadosEscala.find(d => d.uid === uid);
-            if (item && item._modificado) {
+            if (item) {
+                // Captura o valor exato escrito na tela no momento do Enter e força a sincronização
+                let valorAtual = event.target.value;
+                if (campo === 'matricula') {
+                    item.matricula = normalizarMatricula(valorAtual);
+                } else {
+                    item[campo] = valorAtual;
+                }
+                
+                item._modificado = true; // Garante o estado modificado síncronamente
+
                 if (document.activeElement) document.activeElement.blur();
                 window.abrirModalJustificativa(uid);
             }
@@ -818,11 +829,10 @@
         }
     }
 
-    // ADICIONADO DIAGNÓSTICO: Alertas forçados no fluxo de gravação individual
     async function executarSalvarLinhaUnica(uid, dadosJustificativa) {
         const dados = dadosEscala.find(d => d.uid === uid);
-        if (!dados || !dados._modificado) {
-            alert("Erro local: Esta linha não está marcada como modificada em memória.");
+        if (!dados) {
+            alert("Erro crítico: Linha não encontrada no sistema.");
             return;
         }
 
@@ -861,11 +871,10 @@
             renderizarTabela();
             
             mostrarStatus(`Registro (Matrícula ${matriculaFormatadaSeisCasas}) salvo com sucesso via Enter!`, 'success');
-            alert(`Sucesso absoluto! A linha da matrícula ${matriculaFormatadaSeisCasas} foi gravada na nuvem.`);
+            alert(`Sucesso! A alteração da matrícula ${matriculaFormatadaSeisCasas} foi salva no Firebase e a cor amarela foi limpa.`);
         } catch (err) {
-            // Se o Firebase rejeitar por qualquer motivo, esta caixa de diálogo vai saltar no seu ecrã
-            alert(`[BLOQUEIO FIREBASE]: Não foi possível salvar.\nMotivo técnico: ${err.message}\nCódigo do erro: ${err.code}`);
-            console.error(err);
+            alert(`[BLOQUEIO FIREBASE]:\nMotivo técnico: ${err.message}\nCódigo: ${err.code}`);
+            mostrarStatus(`Erro ao salvar linha: ${err.message}`, 'error');
         }
     }
 
@@ -903,7 +912,6 @@
         mostrarStatus(`${uidsParaRemover.length} itens prontos para descarte no Firebase. Clique em Salvar Modificações para concluir.`, 'info');
     };
 
-    // ADICIONADO DIAGNÓSTICO: Alertas forçados no fluxo de gravação em lote
     async function executarSalvarTudoFirebase(dadosJustificativa) {
         const linesModificadas = dadosEscala.filter(d => d._modificado);
 
