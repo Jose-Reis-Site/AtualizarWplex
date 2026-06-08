@@ -706,7 +706,6 @@
         });
     }
 
-    // Renderização sem a coluna Ações e com escuta da tecla Enter
     window.renderizarTabela = function() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
@@ -819,9 +818,13 @@
         }
     }
 
+    // ADICIONADO DIAGNÓSTICO: Alertas forçados no fluxo de gravação individual
     async function executarSalvarLinhaUnica(uid, dadosJustificativa) {
         const dados = dadosEscala.find(d => d.uid === uid);
-        if (!dados || !dados._modificado) return;
+        if (!dados || !dados._modificado) {
+            alert("Erro local: Esta linha não está marcada como modificada em memória.");
+            return;
+        }
 
         try {
             let docRef;
@@ -858,9 +861,11 @@
             renderizarTabela();
             
             mostrarStatus(`Registro (Matrícula ${matriculaFormatadaSeisCasas}) salvo com sucesso via Enter!`, 'success');
+            alert(`Sucesso absoluto! A linha da matrícula ${matriculaFormatadaSeisCasas} foi gravada na nuvem.`);
         } catch (err) {
-            alert("Erro ao gravar no Firebase: " + err.message);
-            mostrarStatus(`Erro ao salvar linha: ${err.message}`, 'error');
+            // Se o Firebase rejeitar por qualquer motivo, esta caixa de diálogo vai saltar no seu ecrã
+            alert(`[BLOQUEIO FIREBASE]: Não foi possível salvar.\nMotivo técnico: ${err.message}\nCódigo do erro: ${err.code}`);
+            console.error(err);
         }
     }
 
@@ -898,6 +903,7 @@
         mostrarStatus(`${uidsParaRemover.length} itens prontos para descarte no Firebase. Clique em Salvar Modificações para concluir.`, 'info');
     };
 
+    // ADICIONADO DIAGNÓSTICO: Alertas forçados no fluxo de gravação em lote
     async function executarSalvarTudoFirebase(dadosJustificativa) {
         const linesModificadas = dadosEscala.filter(d => d._modificado);
 
@@ -974,8 +980,9 @@
             atualizarContadorModificados();
             renderizarTabela(); 
             mostrarStatus('Operação inteligente concluída! Alterações documentadas com sucesso.', 'success');
+            alert(`Lote completo salvo! ${linesModificadas.length} linhas foram atualizadas na nuvem.`);
         } catch (err) {
-            alert("Erro crítico no Firebase em lote: " + err.message);
+            alert(`[BLOQUEIO FIREBASE LOTE]: Falha ao sincronizar o lote.\nMotivo técnico: ${err.message}`);
             mostrarStatus('Erro ao sincronizar dados: ' + err.message, 'error');
         } finally {
             btn.disabled = false;
