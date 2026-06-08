@@ -752,7 +752,6 @@
                 tr.classList.add('row-modified');
             }
 
-            // Injetado o manipulador onkeydown na tag <tr> para monitorar o Enter universalmente na linha
             tr.innerHTML = `
                 <td><input type="checkbox" class="row-select" value="${item.uid}"></td>
                 <td><input type="text" class="cell-editable" value="${item.empresa}" oninput="marcarLinhaComoModificada('${item.uid}', 'empresa', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}')"></td>
@@ -773,13 +772,11 @@
         atualizarContador(visiveis, dadosEscala.length);
     };
 
-    // MELHORIA: Intercepta a digitação. Se for Enter, interrompe o comportamento padrão e invoca o modal
     window.verificarTeclaEnter = function(event, uid) {
         if (event.key === "Enter") {
-            event.preventDefault(); // Impede que o cursor mude de linha ou quebre o input
+            event.preventDefault(); 
             const item = dadosEscala.find(d => d.uid === uid);
             if (item && item._modificado) {
-                // Remove o foco do input atual para consolidar a digitação na tela
                 if (document.activeElement) document.activeElement.blur();
                 window.abrirModalJustificativa(uid);
             }
@@ -822,7 +819,6 @@
         }
     }
 
-    // Executa a persistência limpa na Firebase
     async function executarSalvarLinhaUnica(uid, dadosJustificativa) {
         const dados = dadosEscala.find(d => d.uid === uid);
         if (!dados || !dados._modificado) return;
@@ -857,7 +853,6 @@
                 dados.uid = docRef.id; 
             }
 
-            // SUCESSO GARANTIDO: Limpa o estado e redesenha a tabela de forma limpa
             dados._modificado = false;
             atualizarContadorModificados();
             renderizarTabela();
