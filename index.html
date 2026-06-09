@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Avançado de Escala - TCCC 1</title>
+    <title>Painel Avançado de Escala - TCCC</title>
     <style>
         * {
             box-sizing: border-box;
@@ -16,7 +16,7 @@
             color: #333;
         }
         .container {
-            max-width: 1600px;
+            max-width: 1500px;
             margin: 0 auto;
             background: #fff;
             padding: 20px;
@@ -78,19 +78,18 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.2s, opacity 0.2s;
         }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-search { background-color: #1a237e; color: white; }
         .btn-search:hover { background-color: #0d134a; }
-        .btn-primary { background-color: #3f51b5; color: white; }
-        .btn-primary:hover { background-color: #303f9f; }
         .btn-success { background-color: #4caf50; color: white; }
         .btn-success:hover { background-color: #388e3c; }
         .btn-danger { background-color: #f44336; color: white; }
         .btn-danger:hover { background-color: #d32f2f; }
         .btn-secondary { background-color: #78909c; color: white; }
         .btn-secondary:hover { background-color: #546e7a; }
-
+        
         .file-input-wrapper {
             position: relative;
             overflow: hidden;
@@ -103,11 +102,6 @@
             top: 0;
             opacity: 0;
             cursor: pointer;
-        }
-
-        /* Linha modificada visualmente */
-        .row-modified {
-            background-color: #fffde7 !important; /* Amarelo bem claro */
         }
 
         /* Tabela e Filtros por Coluna */
@@ -131,19 +125,6 @@
             position: sticky;
             top: 0;
             z-index: 10;
-        }
-        .sortable-header {
-            cursor: pointer;
-            user-select: none;
-            transition: background-color 0.2s;
-        }
-        .sortable-header:hover {
-            background-color: #455a64;
-        }
-        .sort-icon {
-            font-size: 11px;
-            margin-left: 5px;
-            color: #b0bec5;
         }
         .filter-row th {
             background-color: #eceff1;
@@ -192,16 +173,6 @@
         .success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
         .error { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
         
-        .progress-bar-container {
-            width: 100%;
-            background-color: #eceff1;
-            border-radius: 6px;
-            margin-top: 15px;
-            display: none;
-            overflow: hidden;
-        }
-        .progress-bar { width: 0%; height: 12px; background-color: #4caf50; transition: width 0.1s; }
-        
         .stats-badge {
             background: #e1f5fe;
             color: #0288d1;
@@ -212,117 +183,127 @@
             margin-left: auto;
         }
 
-        /* ESTRUTURA DO CARD DE JUSTIFICATIVA (MODAL DE AUDITORIA) */
+        /* --- ESTILOS DO MODAL DE JUSTIFICATIVA --- */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
+            z-index: 2000;
         }
         .modal-card {
-            background: white;
-            width: 750px;
+            background: #fff;
+            width: 850px;
             max-width: 95%;
             border-radius: 8px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
+            animation: fadeIn 0.3s ease;
         }
-        .modal-overlay.active .modal-card {
-            transform: translateY(0);
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        
         .modal-header {
-            background-color: #1a237e;
+            background: #1a237e;
             color: white;
             padding: 15px 20px;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
         }
         .modal-body {
             display: flex;
             padding: 20px;
             gap: 20px;
+            max-height: 450px;
+            overflow-y: auto;
         }
+        /* Painel Esquerdo: Motivos */
         .modal-left {
             flex: 1;
-            border-right: 1px solid #e0e0e0;
-            padding-right: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
+            border-right: 1px solid #e0e0e0;
+            padding-right: 20px;
         }
-        .modal-left h4, .modal-right h4 {
-            margin: 0 0 5px 0;
-            color: #37474f;
-        }
-        .radio-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .motivo-btn {
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            padding: 10px;
+            text-align: left;
+            border-radius: 5px;
+            cursor: pointer;
             font-size: 14px;
-            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
         }
-        .radio-group input {
-            margin: 0;
-            cursor: pointer;
+        .motivo-btn:hover { background: #e8eaf6; }
+        .motivo-btn.selected {
+            background: #e8eaf6;
+            border-color: #3f51b5;
+            color: #1a237e;
         }
-        .input-outro-motivo {
-            width: 100%;
-            padding: 6px 10px;
+        .add-motivo-container {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .add-motivo-input {
+            flex: 1;
+            padding: 8px;
             border: 1px solid #b0bec5;
             border-radius: 4px;
             font-size: 13px;
-            margin-top: 5px;
-            display: none;
         }
+        /* Painel Direito: Explicação livre */
         .modal-right {
             flex: 1;
             display: flex;
             flex-direction: column;
+            gap: 8px;
         }
-        .textarea-justificativa {
+        .modal-right label {
+            font-weight: bold;
+            font-size: 14px;
+            color: #37474f;
+        }
+        .justificativa-textarea {
             width: 100%;
-            height: 160px;
+            height: 150px;
             padding: 10px;
             border: 1px solid #b0bec5;
             border-radius: 4px;
-            font-size: 13px;
+            font-size: 14px;
             resize: none;
         }
-        .textarea-justificativa:focus {
-            border-color: #3f51b5;
-            outline: none;
-        }
+        .justificativa-textarea:focus { outline: none; border-color: #3f51b5; }
+        
         .modal-footer {
-            background-color: #f5f5f5;
-            padding: 12px 20px;
+            background: #f8f9fa;
+            padding: 15px 20px;
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-            border-top: 1px solid #e0e0e0;
+            gap: 12px;
+            border-top: 1px solid #e9ecef;
+        }
+        .info-alteracao {
+            background: #fff9c4;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin: 0 20px;
+            font-size: 13px;
+            border: 1px solid #fff59d;
+            color: #576016;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Painel Administrativo de Escala - TCCC 2</h2>
+    <h2>Painel Administrativo de Escala - TCCC</h2>
     
     <div class="search-panel">
         <div class="search-group">
@@ -331,7 +312,7 @@
         </div>
         <div class="search-group">
             <label for="searchMatricula">Por Matrícula (Motorista):</label>
-            <input type="text" id="searchMatricula" class="search-input" placeholder="Ex: 006801">
+            <input type="text" id="searchMatricula" class="search-input" placeholder="Ex: 023343">
         </div>
         <div class="search-group">
             <label for="searchLinha">Por Linha:</label>
@@ -348,14 +329,11 @@
         </div>
         
         <button class="btn btn-danger" onclick="deletarLinhasSelecionadas()">❌ Excluir Linhas Selecionadas</button>
-        <button class="btn btn-success" onclick="abrirModalJustificativa('todos')">💾 Salvar Modificações (${window.totalModificados || 0})</button>
+        <span style="font-size:12px; color:#666; margin-left:10px;">*As edições nas caixas de texto salvam instantaneamente após preencher a justificativa.</span>
         
         <span id="statsCounter" class="stats-badge">Registros visíveis: 0 / Total: 0</span>
     </div>
 
-    <div class="progress-bar-container" id="progressContainer">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
     <div id="status"></div>
 
     <div class="table-responsive">
@@ -363,31 +341,31 @@
             <thead>
                 <tr>
                     <th style="width: 40px;"><input type="checkbox" id="selectAll" onclick="toggleSelecionarTodos(this)"></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('empresa')">Empresa <span id="sort-empresa" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('filial')">Filial <span id="sort-filial" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('data')">Data (dd/mm/aaaa) <span id="sort-data" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('dia_tipo')">Tipo de Dia <span id="sort-dia_tipo" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('linha')">Linha <span id="sort-linha" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('tripulante')">Tripulante <span id="sort-tripulante" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('jornada_inicio')">Jornada Início <span id="sort-jornada_inicio" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('jornada_fim')">Jornada Fim <span id="sort-jornada_fim" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('local')">Local <span id="sort-local" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('veiculo')">Veículo <span id="sort-veiculo" class="sort-icon">↕</span></th>
-                    <th class="sortable-header" onclick="ordenarTabelaPorColuna('matricula')">Matrícula <span id="sort-matricula" class="sort-icon">↕</span></th>
+                    <th>Empresa</th>
+                    <th>Filial</th>
+                    <th>Data (dd/mm/aaaa)</th>
+                    <th>Tipo de Dia</th>
+                    <th>Linha</th>
+                    <th>Tripulante</th>
+                    <th>Jornada Início</th>
+                    <th>Jornada Fim</th>
+                    <th>Local</th>
+                    <th>Veículo</th>
+                    <th>Matrícula</th>
                 </tr>
                 <tr class="filter-row">
                     <th></th>
-                    <th><input type="text" class="filter-input" data-col="empresa" placeholder="Ex: TCCC..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="empresa" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
                     <th><input type="text" class="filter-input" data-col="filial" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
                     <th><input type="text" class="filter-input" data-col="data" placeholder="Filtrar data..." oninput="filtrarTabelaLocal()"></th>
                     <th><input type="text" class="filter-input" data-col="dia_tipo" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
-                    <th><input type="text" class="filter-input" data-col="linha" placeholder="Ex: 010..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="linha" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
                     <th><input type="text" class="filter-input" data-col="tripulante" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
                     <th><input type="text" class="filter-input" data-col="jornada_inicio" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
                     <th><input type="text" class="filter-input" data-col="jornada_fim" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
                     <th><input type="text" class="filter-input" data-col="local" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
                     <th><input type="text" class="filter-input" data-col="veiculo" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
-                    <th><input type="text" class="filter-input" data-col="matricula" placeholder="Ex: 6801..." oninput="filtrarTabelaLocal()"></th>
+                    <th><input type="text" class="filter-input" data-col="matricula" placeholder="Filtrar..." oninput="filtrarTabelaLocal()"></th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -399,44 +377,44 @@
     </div>
 </div>
 
-<div id="justificativaModal" class="modal-overlay">
+<div class="modal-overlay" id="justificativaModal">
     <div class="modal-card">
-        <div class="modal-header">Justificativa de Alteração de Escala</div>
+        <div class="modal-header">Justificativa de Alteração de Registro</div>
+        
+        <div id="infoAlteracaoCard" class="info-alteracao">
+            Alterando registro...
+        </div>
+        
         <div class="modal-body">
-            <div class="modal-left">
-                <h4>Selecione o Motivo:</h4>
-                <label class="radio-group">
-                    <input type="radio" name="motivoOpcao" value="Falta e ausencias" checked onchange="toggleOutroMotivoInput(false)"> Falta e ausências
-                </label>
-                <label class="radio-group">
-                    <input type="radio" name="motivoOpcao" value="Disciplina" onchange="toggleOutroMotivoInput(false)"> Disciplina
-                </label>
-                <label class="radio-group">
-                    <input type="radio" name="motivoOpcao" value="Troca de escala" onchange="toggleOutroMotivoInput(false)"> Troca de escala
-                </label>
-                <label class="radio-group">
-                    <input type="radio" name="motivoOpcao" value="Ajuste de horario" onchange="toggleOutroMotivoInput(false)"> Ajuste de horário
-                </label>
-                <label class="radio-group">
-                    <input type="radio" name="motivoOpcao" value="Outro" onchange="toggleOutroMotivoInput(true)"> Outro motivo...
-                </label>
-                <input type="text" id="customMotivoInput" class="input-outro-motivo" placeholder="Escreva o novo motivo aqui">
+            <div class="modal-left" id="listaMotivosContainer">
+                <label style="font-weight:bold; font-size:14px; color:#37474f; margin-bottom:5px;">Selecione o Motivo:</label>
+                <button type="button" class="motivo-btn" onclick="selecionarMotivoRapido(this)">Falta e ausências</button>
+                <button type="button" class="motivo-btn" onclick="selecionarMotivoRapido(this)">Disciplina</button>
+                <button type="button" class="motivo-btn" onclick="selecionarMotivoRapido(this)">Troca de escala</button>
+                <button type="button" class="motivo-btn" onclick="selecionarMotivoRapido(this)">Ajuste de horário</button>
+                
+                <div class="add-motivo-container">
+                    <input type="text" id="novoMotivoInput" class="add-motivo-input" placeholder="Outro motivo...">
+                    <button type="button" class="btn btn-secondary" style="padding: 5px 10px; font-size:12px;" onclick="adicionarNovoMotivoDaLista()">+ Add</button>
+                </div>
             </div>
+            
             <div class="modal-right">
-                <h4>Explicação Detalhada:</h4>
-                <textarea id="textoJustificativa" class="textarea-justificativa" placeholder="Digite detalhadamente o motivo e observações desta alteração..."></textarea>
+                <label for="txtJustificativaDetalhada">Explicação Detalhada:</label>
+                <textarea id="txtJustificativaDetalhada" class="justificativa-textarea" placeholder="Digite detalhadamente o porquê desta alteração ser necessária..."></textarea>
             </div>
         </div>
+        
         <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="fecharModalJustificativa()">Cancelar</button>
-            <button class="btn btn-primary" onclick="confirmarEEnviarSalvamento()">Confirmar e Salvar</button>
+            <button type="button" class="btn btn-secondary" onclick="cancelarJustificativaEVoltar()">Voltar e Cancelar</button>
+            <button type="button" class="btn btn-success" onclick="confirmarEGravarNoFirebase()">Salvar Alteração</button>
         </div>
     </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, doc, writeBatch, query, where, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, doc, writeBatch, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyD-cwT1A_aI9GlVlja4qCdFnHPLOD7GXWU",
@@ -451,96 +429,16 @@
     const db = getFirestore(app);
 
     let dadosEscala = [];
-    if (!window.idsParaDeletar) window.idsParaDeletar = [];
-    window.totalModificados = 0;
     
-    let colunaOrdenadaAtual = '';
-    let ordemCrescente = true;
-    let escopoSalvamentoAtual = null;
-
-    function normalizarMatricula(valor) {
-        if (!valor) return "";
-        const num = parseInt(String(valor).replace(/\D/g, ''), 10);
-        return isNaN(num) ? "" : String(num);
-    }
-
-    function formatarSeisCasas(valor) {
-        if (!valor) return "000000";
-        const numPuro = String(valor).replace(/\D/g, '');
-        return numPuro.padStart(6, '0');
-    }
-
-    // Modal Justificativas Engine
-    window.abrirModalJustificativa = function(escopo) {
-        if (escopo === 'todos') {
-            const linhasModificadas = dadosEscala.filter(d => d._modificado);
-            if (linhasModificadas.length === 0 && window.idsParaDeletar.length === 0) {
-                mostrarStatus('Não há nenhuma modificação pendente ou exclusão para ser salva.', 'error');
-                return;
-            }
-        }
-        
-        escopoSalvamentoAtual = escopo;
-        
-        document.querySelector('input[name="motivoOpcao"][value="Falta e ausencias"]').checked = true;
-        document.getElementById('customMotivoInput').value = '';
-        document.getElementById('customMotivoInput').style.display = 'none';
-        document.getElementById('textoJustificativa').value = '';
-        
-        document.getElementById('justificativaModal').classList.add('active');
-    };
-
-    window.fecharModalJustificativa = function() {
-        document.getElementById('justificativaModal').classList.remove('active');
-        escopoSalvamentoAtual = null;
-    };
-
-    window.toggleOutroMotivoInput = function(mostrar) {
-        const input = document.getElementById('customMotivoInput');
-        input.style.display = mostrar ? 'block' : 'none';
-        if (mostrar) input.focus();
-    };
-
-    window.confirmarEEnviarSalvamento = function() {
-        const opcaoSelecionada = document.querySelector('input[name="motivoOpcao"]:checked').value;
-        let motivoFinal = opcaoSelecionada;
-
-        if (opcaoSelecionada === 'Outro') {
-            const customMotivo = document.getElementById('customMotivoInput').value.trim();
-            if (!customMotivo) {
-                alert('Por favor, descreva qual é o outro motivo no campo de texto.');
-                return;
-            }
-            motivoFinal = customMotivo;
-        }
-
-        const explicacao = document.getElementById('textoJustificativa').value.trim();
-        if (!explicacao) {
-            alert('Por favor, insira uma explicação detalhada no campo da direita.');
-            return;
-        }
-
-        const dadosJustificativa = {
-            motivo: motivoFinal,
-            detalhes: explicacao,
-            usuario_data: new Date().toISOString()
-        };
-
-        fecharModalJustificativa();
-
-        if (escopoSalvamentoAtual === 'todos') {
-            executarSalvarTudoFirebase(dadosJustificativa);
-        } else {
-            executarSalvarLinhaUnica(escopoSalvamentoAtual, dadosJustificativa);
-        }
-    };
+    // Objeto temporário para monitorar a edição em andamento antes da justificativa ser salva
+    let transacaoPendente = null;
 
     // Carregar Novo CSV localmente
     document.getElementById('csvFile').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (!file) return;
 
-        mostrarStatus('Processando CSV...', 'info');
+        mostrarStatus('Processando e removendo duplicadas do CSV...', 'info');
         const reader = new FileReader();
         
         reader.onload = function(evt) {
@@ -555,13 +453,12 @@
                     if (valores[0] === "Empresa" || valores.length < 27) return;
 
                     const codigo = valores[2] || "";
-                    const matriculaPura = normalizarMatricula(valores[26]);
-                    const chaveUnica = `${codigo}_${matriculaPura}`;
+                    const matricula = valores[26] || "";
+                    const chaveUnica = `${codigo}_${matricula}`;
 
                     if (!jornadasUnicas.has(chaveUnica)) {
                         jornadasUnicas.set(chaveUnica, {
                             id: null,
-                            uid: 'csv_' + Math.random().toString(36).substr(2, 9),
                             empresa: valores[0] || "",
                             filial: valores[1] || "",
                             data: extrairDataCodigo(codigo) || "",
@@ -572,17 +469,14 @@
                             jornada_fim: valores[9] || "",
                             local: valores[12] || "",
                             veiculo: valores[25] || "",
-                            matricula: matriculaPura,
-                            _modificado: true 
+                            matricula: matricula
                         });
                     }
                 });
 
                 dadosEscala = Array.from(jornadasUnicas.values());
-                atualizarContadorModificados();
-                resetaIconesOrdenacao();
                 renderizarTabela();
-                mostrarStatus(`CSV processado! ${dadosEscala.length} jornadas carregadas na tela.`, 'success');
+                mostrarStatus(`CSV carregado com sucesso! ${dadosEscala.length} jornadas na tela. Caso edite alguma, o Firebase gerará um novo registro automático pedindo justificativa.`, 'success');
             } catch (err) {
                 mostrarStatus('Erro ao ler CSV: ' + err.message, 'error');
             }
@@ -590,9 +484,9 @@
         reader.readAsText(file, "UTF-8");
     });
 
-    // Busca no Firebase
+    // Busca Inteligente no Firebase por filtros combinados
     window.buscarDoFirebaseFiltrado = async function() {
-        mostrarStatus('Buscando dados no Firebase...', 'info');
+        mostrarStatus('Buscando dados no Firebase de acordo com os filtros...', 'info');
         
         const inputData = document.getElementById('searchData').value;
         const inputMatricula = document.getElementById('searchMatricula').value.trim();
@@ -609,8 +503,7 @@
             }
 
             if (inputMatricula) {
-                const matriculaBusca = formatarSeisCasas(inputMatricula);
-                restricoes.push(where("matricula", "==", matriculaBusca));
+                restricoes.push(where("matricula", "==", inputMatricula));
             }
 
             if (inputLinha) {
@@ -621,13 +514,11 @@
             const querySnapshot = await getDocs(q);
             
             dadosEscala = [];
-            window.idsParaDeletar = []; 
             
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
                 dadosEscala.push({
                     id: doc.id,
-                    uid: String(doc.id),
                     empresa: data.empresa || "",
                     filial: data.filial || "",
                     data: data.data || "",
@@ -638,15 +529,12 @@
                     jornada_fim: data.jornada_fim || "",
                     local: data.local || "",
                     veiculo: data.veiculo || "",
-                    matricula: normalizarMatricula(data.matricula),
-                    _modificado: false 
+                    matricula: data.matricula || ""
                 });
             });
 
-            atualizarContadorModificados();
-            resetaIconesOrdenacao();
             renderizarTabela();
-            mostrarStatus(`Sucesso! ${dadosEscala.length} registros encontrados.`, 'success');
+            mostrarStatus(`Sucesso! ${dadosEscala.length} registros correspondentes encontrados no Firebase.`, 'success');
         } catch (err) {
             mostrarStatus('Erro ao realizar busca: ' + err.message, 'error');
         }
@@ -659,59 +547,7 @@
         buscarDoFirebaseFiltrado();
     };
 
-    // Ordenação
-    window.ordenarTabelaPorColuna = function(coluna) {
-        if (dadosEscala.length === 0) return;
-
-        if (colunaOrdenadaAtual === coluna) {
-            ordemCrescente = !ordemCrescente;
-        } else {
-            colunaOrdenadaAtual = coluna;
-            ordemCrescente = true;
-        }
-
-        dadosEscala.sort((a, b) => {
-            let valA = String(a[coluna] || '').toLowerCase().trim();
-            let valB = String(b[coluna] || '').toLowerCase().trim();
-
-            if (coluna === 'matricula') {
-                let numA = parseInt(valA, 10) || 0;
-                let numB = parseInt(valB, 10) || 0;
-                return ordemCrescente ? numA - numB : numB - numA;
-            }
-
-            if (coluna === 'data') {
-                const partsA = valA.split('/');
-                const partsB = valB.split('/');
-                if(partsA.length === 3 && partsB.length === 3) {
-                    valA = `${partsA[2]}${partsA[1]}${partsA[0]}`;
-                    valB = `${partsB[2]}${partsB[1]}${partsB[0]}`;
-                }
-            }
-
-            if (valA < valB) return ordemCrescente ? -1 : 1;
-            if (valA > valB) return ordemCrescente ? 1 : -1;
-            return 0;
-        });
-
-        resetaIconesOrdenacao();
-        const icone = document.getElementById(`sort-${coluna}`);
-        if (icone) {
-            icone.innerText = ordemCrescente ? '▲' : '▼';
-            icone.style.color = '#fff';
-        }
-
-        renderizarTabela();
-    };
-
-    function resetaIconesOrdenacao() {
-        document.querySelectorAll('.sort-icon').forEach(icon => {
-            icon.innerText = '↕';
-            icon.style.color = '#b0bec5';
-        });
-    }
-
-    // Renderização com suporte nativo ao Enter por célula e amarração estável por UID
+    // Atualização Visual da Tabela
     window.renderizarTabela = function() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = '';
@@ -724,23 +560,17 @@
 
         const filtros = {};
         document.querySelectorAll('.filter-input').forEach(input => {
-            const valorInput = input.value.toLowerCase().trim();
-            if (valorInput) {
-                filtros[input.dataset.col] = valorInput.split(',').map(item => item.trim()).filter(item => item !== '');
-            }
+            filtros[input.dataset.col] = input.value.toLowerCase().trim();
         });
 
         let visiveis = 0;
 
-        dadosEscala.forEach((item) => {
+        dadosEscala.forEach((item, index) => {
             let passaFiltro = true;
-            
             for (const col in filtros) {
-                if (filtros[col] && filtros[col].length > 0) {
+                if (filtros[col]) {
                     const valorCelula = String(item[col] || '').toLowerCase();
-                    const bateuAlgumItem = filtros[col].some(termoProcurado => valorCelula.includes(termoProcurado));
-                    
-                    if (!bateuAlgumItem) {
+                    if (!valorCelula.includes(filtros[col])) {
                         passaFiltro = false;
                         break;
                     }
@@ -751,25 +581,22 @@
             visiveis++;
 
             const tr = document.createElement('tr');
-            tr.id = `tr-row-${item.uid}`;
-            
-            if (item._modificado) {
-                tr.classList.add('row-modified');
-            }
+            tr.dataset.index = index;
 
+            // Injetamos eventos de monitoramento de mudança na célula (onblur e monitor de tecla Enter)
             tr.innerHTML = `
-                <td><input type="checkbox" class="row-select" value="${item.uid}"></td>
-                <td><input type="text" class="cell-editable" value="${item.empresa}" oninput="marcarLinhaComoModificada('${item.uid}', 'empresa', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'empresa')"></td>
-                <td><input type="text" class="cell-editable" value="${item.filial}" oninput="marcarLinhaComoModificada('${item.uid}', 'filial', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'filial')"></td>
-                <td><input type="text" class="cell-editable" value="${item.data}" oninput="marcarLinhaComoModificada('${item.uid}', 'data', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'data')"></td>
-                <td><input type="text" class="cell-editable" value="${item.dia_tipo}" oninput="marcarLinhaComoModificada('${item.uid}', 'dia_tipo', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'dia_tipo')"></td>
-                <td><input type="text" class="cell-editable" value="${item.linha}" oninput="marcarLinhaComoModificada('${item.uid}', 'linha', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'linha')"></td>
-                <td><input type="text" class="cell-editable" value="${item.tripulante}" oninput="marcarLinhaComoModificada('${item.uid}', 'tripulante', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'tripulante')"></td>
-                <td><input type="text" class="cell-editable" value="${item.jornada_inicio}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_inicio', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'jornada_inicio')"></td>
-                <td><input type="text" class="cell-editable" value="${item.jornada_fim}" oninput="marcarLinhaComoModificada('${item.uid}', 'jornada_fim', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'jornada_fim')"></td>
-                <td><input type="text" class="cell-editable" value="${item.local}" oninput="marcarLinhaComoModificada('${item.uid}', 'local', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'local')"></td>
-                <td><input type="text" class="cell-editable" value="${item.veiculo}" oninput="marcarLinhaComoModificada('${item.uid}', 'veiculo', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'veiculo')"></td>
-                <td><input type="text" class="cell-editable" value="${item.matricula}" oninput="marcarLinhaComoModificadaMatricula('${item.uid}', this.value)" onkeydown="verificarTeclaEnter(event, '${item.uid}', 'matricula')"></td>
+                <td><input type="checkbox" class="row-select" value="${index}"></td>
+                <td><input type="text" class="cell-editable" value="${item.empresa}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'empresa', this.value, '${item.empresa}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.filial}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'filial', this.value, '${item.filial}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.data}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'data', this.value, '${item.data}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.dia_tipo}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'dia_tipo', this.value, '${item.dia_tipo}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.linha}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'linha', this.value, '${item.linha}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.tripulante}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'tripulante', this.value, '${item.tripulante}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.jornada_inicio}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'jornada_inicio', this.value, '${item.jornada_inicio}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.jornada_fim}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'jornada_fim', this.value, '${item.jornada_fim}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.local}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'local', this.value, '${item.local}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.veiculo}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'veiculo', this.value, '${item.veiculo}')"></td>
+                <td><input type="text" class="cell-editable" value="${item.matricula}" onkeydown="verificarTeclaEnter(event, this)" onblur="avaliarMudancaCelula(${index}, 'matricula', this.value, '${item.matricula}')"></td>
             `;
             tbody.appendChild(tr);
         });
@@ -777,229 +604,186 @@
         atualizarContador(visiveis, dadosEscala.length);
     };
 
-    // Motor do Enter intercepta e sincroniza na memória de forma atômica
-    window.verificarTeclaEnter = function(event, uid, campo) {
-        if (event.key === "Enter") {
-            event.preventDefault(); 
-            const item = dadosEscala.find(d => String(d.uid) === String(uid));
-            if (item) {
-                let valorAtual = event.target.value;
-                if (campo === 'matricula') {
-                    item.matricula = normalizarMatricula(valorAtual);
-                } else {
-                    item[campo] = valorAtual;
-                }
-                
-                item._modificado = true; 
-
-                if (document.activeElement) document.activeElement.blur();
-                window.abrirModalJustificativa(uid);
-            }
+    // Força o gatilho de perda de foco se pressionar Enter na célula editável
+    window.verificarTeclaEnter = function(event, elemento) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            elemento.blur(); 
         }
     };
 
-    window.marcarLinhaComoModificada = function(uid, campo, valor) {
-        const item = dadosEscala.find(d => String(d.uid) === String(uid));
-        if (item) {
-            item[campo] = valor;
-            
-            if (!item._modificado) {
-                item._modificado = true;
-                const elementoTr = document.getElementById(`tr-row-${uid}`);
-                if (elementoTr) elementoTr.classList.add('row-modified');
-                atualizarContadorModificados();
-            }
+    // Detecção inteligente e abertura do Card
+    window.avaliarMudancaCelula = function(index, campo, valorNovo, valorAntigo) {
+        if (valorNovo.trim() === valorAntigo.trim()) return; // Sem mudanças reais
+
+        const registroOriginal = dadosEscala[index];
+        
+        // Armazena temporariamente os dados para a gravação futura
+        transacaoPendente = {
+            index: index,
+            campo: campo,
+            valorNovo: valorNovo,
+            valorAntigo: valorAntigo,
+            registroOriginal: { ...registroOriginal }
+        };
+
+        // Preenche info visual rápida no card
+        document.getElementById('infoAlteracaoCard').innerHTML = `
+            <strong>Modificação detectada:</strong> Campo <u>${campo.toUpperCase()}</u> alterado de 
+            "<span style='text-decoration: line-through;'>${valorAntigo}</span>" para "<strong>${valorNovo}</strong>" 
+            no tripulante: <strong>${registroOriginal.tripulante || 'Não Identificado'}</strong> (Matrícula: ${registroOriginal.matricula}).
+        `;
+
+        // Reseta estados internos do Modal e o exibe
+        document.querySelectorAll('.motivo-btn').forEach(btn => btn.classList.remove('selected'));
+        document.getElementById('txtJustificativaDetalhada').value = '';
+        document.getElementById('novoMotivoInput').value = '';
+        document.getElementById('justificativaModal').style.display = 'flex';
+    };
+
+    // Funções de Operação do Modal de Justificativa
+    window.selecionarMotivoRapido = function(botaoSelecionado) {
+        document.querySelectorAll('.motivo-btn').forEach(btn => btn.classList.remove('selected'));
+        botaoSelecionado.classList.add('selected');
+    };
+
+    window.adicionarNovoMotivoDaLista = function() {
+        const input = document.getElementById('novoMotivoInput');
+        const textoMotivo = input.value.trim();
+        
+        if (!textoMotivo) {
+            alert('Digite um motivo válido para adicionar.');
+            return;
+        }
+
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = "motivo-btn";
+        btn.innerText = textoMotivo;
+        btn.onclick = function() { window.selecionarMotivoRapido(this); };
+
+        const container = document.getElementById('listaMotivosContainer');
+        const divInput = container.querySelector('.add-motivo-container');
+        container.insertBefore(btn, divInput); // Insere logo acima do input
+
+        input.value = '';
+        window.selecionarMotivoRapido(btn); // Já deixa o novo selecionado
+    };
+
+    window.cancelarJustificativaEVoltar = function() {
+        if (confirm('Deseja descartar essa alteração? O campo retornará ao valor original.')) {
+            document.getElementById('justificativaModal').style.display = 'none';
+            transacaoPendente = null;
+            renderizarTabela(); // Desfaz visualmente na tela limpando a alteração
         }
     };
 
-    window.marcarLinhaComoModificadaMatricula = function(uid, valor) {
-        const item = dadosEscala.find(d => String(d.uid) === String(uid));
-        if (item) {
-            item.matricula = normalizarMatricula(valor);
-            
-            if (!item._modificado) {
-                item._modificado = true;
-                const elementoTr = document.getElementById(`tr-row-${uid}`);
-                if (elementoTr) elementoTr.classList.add('row-modified');
-                atualizarContadorModificados();
-            }
-        }
-    };
+    // PERSISTÊNCIA UNITÁRIA NO FIREBASE
+    window.confirmarEGravarNoFirebase = async function() {
+        if (!transacaoPendente) return;
 
-    function atualizarContadorModificados() {
-        window.totalModificados = dadosEscala.filter(d => d._modificado).length;
-        const btnTudo = document.querySelector('button[onclick="abrirModalJustificativa(\'todos\')"]');
-        if (btnTudo) {
-            btnTudo.innerText = `💾 Salvar Modificações (${window.totalModificados})`;
-        }
-    }
+        // Recuperar o motivo selecionado
+        const botaoMotivoSelecionado = document.querySelector('.motivo-btn.selected');
+        const motivoEscolhido = botaoMotivoSelecionado ? botaoMotivoSelecionado.innerText : "";
+        const explicacaoDetalhada = document.getElementById('txtJustificativaDetalhada').value.trim();
 
-    // Persistência Unitária Avançada amarrada ao UID estável
-    async function executarSalvarLinhaUnica(uid, dadosJustificativa) {
-        const dados = dadosEscala.find(d => String(d.uid) === String(uid));
-        if (!dados || !dados._modificado) return;
+        if (!motivoEscolhido) {
+            alert('Por favor, selecione ou adicione um motivo na coluna da esquerda.');
+            return;
+        }
+        if (!explicacaoDetalhada) {
+            alert('Por favor, descreva detalhadamente a alteração na coluna da direita.');
+            return;
+        }
+
+        const botaoSalvarCard = document.querySelector('button[onclick="confirmarEGravarNoFirebase()"]');
+        botaoSalvarCard.disabled = true;
+        mostrarStatus('Gravando alteração e justificativa diretamente no Firebase...', 'info');
 
         try {
-            let docRef;
-            const matriculaFormatadaSeisCasas = formatarSeisCasas(dados.matricula);
+            const index = transacaoPendente.index;
+            const campoModificado = transacaoPendente.campo;
+            const novoValor = transacaoPendente.valorNovo;
 
-            const dadosParaSalvar = {
-                empresa: dados.empresa,
-                filial: dados.filial,
-                data: dados.data,
-                dia_tipo: dados.dia_tipo,
-                linha: dados.linha,
-                tripulante: dados.tripulante,
-                jornada_inicio: dados.jornada_inicio,
-                jornada_fim: dados.jornada_fim,
-                local: dados.local,
-                veiculo: dados.veiculo,
-                matricula: matriculaFormatadaSeisCasas,
-                atualizado_em: new Date().toISOString(),
-                justificativa: dadosJustificativa
+            // Atualiza os dados locais na memória global do array
+            dadosEscala[index][campoModificado] = novoValor;
+
+            const dadosObjetoFirebase = {
+                empresa: dadosEscala[index].empresa,
+                filial: dadosEscala[index].filial,
+                data: dadosEscala[index].data,
+                dia_tipo: dadosEscala[index].dia_tipo,
+                linha: dadosEscala[index].linha,
+                tripulante: dadosEscala[index].tripulante,
+                jornada_inicio: dadosEscala[index].jornada_inicio,
+                jornada_fim: dadosEscala[index].jornada_fim,
+                local: dadosEscala[index].local,
+                veiculo: dadosEscala[index].veiculo,
+                matricula: dadosEscala[index].matricula,
+                
+                // Dados da auditoria de alteração requeridos
+                motivo_alteracao: motivoEscolhido,
+                justificativa_detalhada: explicacaoDetalhada,
+                atualizado_em: new Date().toISOString()
             };
 
-            if (dados.id) {
-                docRef = doc(db, "escalas_tccc", dados.id);
-                await setDoc(docRef, dadosParaSalvar, { merge: true });
+            if (dadosEscala[index].id) {
+                // Registro já existe no banco -> faz UPDATE individual controlado
+                const docRef = doc(db, "escalas_tccc", dadosEscala[index].id);
+                await updateDoc(docRef, dadosObjetoFirebase);
             } else {
-                docRef = doc(collection(db, "escalas_tccc"));
-                await setDoc(docRef, dadosParaSalvar);
-                dados.id = docRef.id;
-                dados.uid = String(docRef.id); 
+                // Registro veio do CSV e não tinha ID -> Cria um novo no Firebase
+                const novaRef = doc(collection(db, "escalas_tccc"));
+                await writeBatch(db).set(novaRef, dadosObjetoFirebase).commit();
+                dadosEscala[index].id = novaRef.id;
             }
 
-            dados._modificado = false;
-            atualizarContadorModificados();
-            renderizarTabela(); // Redesenha limpando os fundos amarelos estavelmente
-            
-            mostrarStatus(`Registro (Matrícula ${matriculaFormatadaSeisCasas}) salvo com sucesso!`, 'success');
+            document.getElementById('justificativaModal').style.display = 'none';
+            mostrarStatus(`Sucesso! Registro do tripulante "${dadosEscala[index].tripulante}" atualizado com histórico preservado.`, 'success');
+            transacaoPendente = null;
+            renderizarTabela();
         } catch (err) {
-            alert("Erro ao salvar no Firebase: " + err.message);
-            mostrarStatus(`Erro ao salvar linha: ${err.message}`, 'error');
+            alert('Erro ao salvar no banco de dados: ' + err.message);
+            mostrarStatus('Erro ao atualizar: ' + err.message, 'error');
+        } finally {
+            botaoSalvarCard.disabled = false;
         }
-    }
+    };
 
     window.filtrarTabelaLocal = function() {
         renderizarTabela();
     };
 
-    // Marcar exclusão por UID coerente
-    window.deletarLinhasSelecionadas = function() {
+    // Exclusão Individual em Bloco para os selecionados via Checkbox
+    window.deletarLinhasSelecionadas = async function() {
         const checkboxes = document.querySelectorAll('.row-select:checked');
         if (checkboxes.length === 0) {
             alert('Selecione ao menos um item marcando a caixinha.');
             return;
         }
 
-        if (!confirm(`Deseja mesmo remover as ${checkboxes.length} linhas da exibição? Clique em "Salvar Modificações" na sequência para efetivar no banco.`)) {
+        if (!confirm(`Deseja mesmo remover os ${checkboxes.length} itens direto do Firebase de forma definitiva?`)) {
             return;
         }
 
-        const uidsParaRemover = Array.from(checkboxes).map(cb => cb.value);
+        mostrarStatus('Excluindo registros selecionados no Firebase...', 'info');
+        const indices = Array.from(checkboxes).map(cb => parseInt(cb.value)).sort((a, b) => b - a);
 
-        uidsParaRemover.forEach(uid => {
-            const idx = dadosEscala.findIndex(d => String(d.uid) === String(uid));
-            if (idx !== -1) {
+        try {
+            for (const idx of indices) {
                 const item = dadosEscala[idx];
                 if (item.id) {
-                    window.idsParaDeletar.push(item.id);
+                    await deleteDoc(doc(db, "escalas_tccc", item.id));
                 }
                 dadosEscala.splice(idx, 1);
             }
-        });
-
-        document.getElementById('selectAll').checked = false;
-        atualizarContadorModificados();
-        renderizarTabela();
-        mostrarStatus(`Itens movidos para a fila de descarte. Conclua clicando em Salvar Modificações.`, 'info');
-    };
-
-    // Sincronização em Bloco Inteligente
-    async function executarSalvarTudoFirebase(dadosJustificativa) {
-        const linhasModificadas = dadosEscala.filter(d => d._modificado);
-
-        const btn = document.querySelector('button[onclick="abrirModalJustificativa(\'todos\')"]');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progressBar');
-        
-        btn.disabled = true;
-        progressContainer.style.display = 'block';
-        progressBar.style.width = '15%';
-        mostrarStatus(`Gravando modificações com justificativa no Firebase...`, 'info');
-
-        try {
-            if (window.idsParaDeletar.length > 0) {
-                const tamanhoLoteDel = 400;
-                for (let i = 0; i < window.idsParaDeletar.length; i += tamanhoLoteDel) {
-                    const batchDel = writeBatch(db);
-                    const pedacoDel = window.idsParaDeletar.slice(i, i + tamanhoLoteDel);
-                    pedacoDel.forEach(idDoc => {
-                        batchDel.delete(doc(db, "escalas_tccc", idDoc));
-                    });
-                    await batchDel.commit();
-                }
-                window.idsParaDeletar = [];
-            }
-
-            const tamanhoLote = 400;
-            let totalSalvo = 0;
-
-            if (linhasModificadas.length > 0) {
-                for (let i = 0; i < linhasModificadas.length; i += tamanhoLote) {
-                    const batch = writeBatch(db);
-                    const pedaco = linhasModificadas.slice(i, i + tamanhoLote);
-
-                    pedaco.forEach((dados) => {
-                        let docRef;
-                        const matriculaFormatadaSeisCasas = formatarSeisCasas(dados.matricula);
-
-                        const dadosParaSalvar = {
-                            empresa: dados.empresa,
-                            filial: dados.filial,
-                            data: dados.data,
-                            dia_tipo: dados.dia_tipo,
-                            linha: dados.linha,
-                            tripulante: dados.tripulante,
-                            jornada_inicio: dados.jornada_inicio,
-                            jornada_fim: dados.jornada_fim,
-                            local: dados.local,
-                            veiculo: dados.veiculo,
-                            matricula: matriculaFormatadaSeisCasas,
-                            atualizado_em: new Date().toISOString(),
-                            justificativa: dadosJustificativa 
-                        };
-
-                        if (dados.id) {
-                            docRef = doc(db, "escalas_tccc", dados.id);
-                            batch.set(docRef, dadosParaSalvar, { merge: true });
-                        } else {
-                            docRef = doc(collection(db, "escalas_tccc"));
-                            batch.set(docRef, dadosParaSalvar);
-                            dados.id = docRef.id;
-                            dados.uid = String(docRef.id);
-                        }
-                        
-                        dados._modificado = false;
-                    });
-
-                    await batch.commit();
-                    totalSalvo += pedaco.length;
-                    progressBar.style.width = Math.round((totalSalvo / linhasModificadas.length) * 100) + '%';
-                }
-            }
-
-            atualizarContadorModificados();
-            renderizarTabela(); 
-            mostrarStatus('Operação inteligente concluída! Alterações documentadas com sucesso.', 'success');
+            document.getElementById('selectAll').checked = false;
+            renderizarTabela();
+            mostrarStatus('Registros excluídos com sucesso!', 'success');
         } catch (err) {
-            alert("Erro crítico no Firebase em lote: " + err.message);
-            mostrarStatus('Erro ao sincronizar dados: ' + err.message, 'error');
-        } finally {
-            btn.disabled = false;
-            setTimeout(() => { progressContainer.style.display = 'none'; }, 2000);
+            mostrarStatus('Erro ao deletar registros: ' + err.message, 'error');
         }
-    }
+    };
 
     window.toggleSelecionarTodos = function(masterCanvas) {
         const checkboxes = document.querySelectorAll('.row-select');
